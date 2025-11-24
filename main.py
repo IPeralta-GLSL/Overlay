@@ -4,7 +4,6 @@ import types
 import setuptools
 import json
 
-# Patch distutils for GPUtil on Python 3.12+
 try:
     from distutils import spawn
 except ImportError:
@@ -53,9 +52,9 @@ def create_tray_icon(app, window, config_manager):
     return tray_icon
 
 def open_settings(window, config_manager):
-    dialog = SettingsDialog(config_manager)
-    if dialog.exec():
-        window.reload_settings()
+    # Pass window.reload_settings as the callback
+    dialog = SettingsDialog(config_manager, on_apply_callback=window.reload_settings)
+    dialog.exec()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

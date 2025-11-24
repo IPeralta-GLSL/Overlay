@@ -6,13 +6,17 @@ from PySide6.QtGui import QFont
 from src.utils.translations import TRANSLATIONS
 
 class SettingsDialog(QDialog):
-    def __init__(self, config_manager, parent=None):
+    def __init__(self, config_manager, on_apply_callback=None, parent=None):
         super().__init__(parent)
         self.config_manager = config_manager
+        self.on_apply_callback = on_apply_callback
         self.current_lang = self.config_manager.get("language", "es")
         self.apply_stylesheet()
         self.init_ui()
         self.retranslate_ui()
+        
+        # Trigger initial state for preset
+        self.on_preset_change(self.preset_combo.currentIndex())
 
     def apply_stylesheet(self):
         self.setStyleSheet("""
@@ -99,6 +103,23 @@ class SettingsDialog(QDialog):
         self.lang_combo.currentTextChanged.connect(self.on_language_change)
         self.form_layout.addRow(self.lang_label, self.lang_combo)
 
+        # Position Preset
+        self.preset_label = QLabel()
+        self.preset_combo = QComboBox()
+        self.preset_combo.addItem("custom", "custom")
+        self.preset_combo.addItem("top-left", "top-left")
+        self.preset_combo.addItem("top-right", "top-right")
+        self.preset_combo.addItem("bottom-left", "bottom-left")
+        self.preset_combo.addItem("bottom-right", "bottom-right")
+        
+        current_preset = self.config_manager.get("position_preset", "custom")
+        index = self.preset_combo.findData(current_preset)
+        if index >= 0:
+            self.preset_combo.setCurrentIndex(index)
+            
+        self.preset_combo.currentIndexChanged.connect(self.on_preset_change)
+        self.form_layout.addRow(self.preset_label, self.preset_combo)
+
         # Font Family
         self.font_family_label = QLabel()
         self.font_family_combo = QFontComboBox()
@@ -184,6 +205,12 @@ class SettingsDialog(QDialog):
         trans = TRANSLATIONS.get(self.current_lang, TRANSLATIONS["en"])
         self.setWindowTitle(trans["settings"])
         self.lang_label.setText(trans["language"])
+        self.preset_label.setText(trans["position_preset"])
+        self.preset_combo.setItemText(0, trans["preset_custom"])
+        self.preset_combo.setItemText(1, trans["preset_top_left"])
+        self.preset_combo.setItemText(2, trans["preset_top_right"])
+        self.preset_combo.setItemText(3, trans["preset_bottom_left"])
+        self.preset_combo.setItemText(4, trans["preset_bottom_right"])
         self.font_family_label.setText(trans["font_family"])
         self.font_size_label.setText(trans["font_size"])
         self.pos_x_label.setText(trans["position_x"])
@@ -199,6 +226,12 @@ class SettingsDialog(QDialog):
         self.show_gpu_check.setText(trans["show_gpu"])
         self.save_btn.setText(trans["save"])
         self.cancel_btn.setText(trans["cancel"])
+
+    def on_preset_change(self, index):
+        key = self.preset_combo.itemData(index)
+        is_custom = (key == "custom")
+        self.pos_x_spin.setEnabled(is_custom)
+        self.pos_y_spin.setEnabled(is_custom)
 
     def pick_color(self, target):
         color = QColorDialog.getColor()
@@ -217,6 +250,7 @@ class SettingsDialog(QDialog):
 
     def save_settings(self):
         self.config_manager.set("language", self.lang_combo.currentText())
+        self.config_manager.set("position_preset", self.preset_combo.currentData())
         self.config_manager.set("font_family", self.font_family_combo.currentFont().family())
         self.config_manager.set("font_size", self.font_size_spin.value())
         self.config_manager.set("position_x", self.pos_x_spin.value())
@@ -229,4 +263,7 @@ class SettingsDialog(QDialog):
         self.config_manager.set("show_ram", self.show_ram_check.isChecked())
         self.config_manager.set("show_gpu", self.show_gpu_check.isChecked())
         self.config_manager.save_config()
-        self.accept()
+        
+        if self.on_apply_callback:
+            self.on_apply_callback()
+        # self.accept() # Do not close on apply

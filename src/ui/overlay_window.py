@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QColor, QPalette, QFont
+from PySide6.QtGui import QColor, QPalette, QFont, QGuiApplication
 from src.core.system_monitor import SystemMonitor
 from src.utils.translations import TRANSLATIONS
 
@@ -38,6 +38,8 @@ class OverlayWindow(QWidget):
         for label in [self.time_label, self.cpu_label, self.ram_label, self.gpu_label]:
             layout.addWidget(label)
 
+        self.update_position()
+
     def apply_styles(self):
         font = QFont(self.config.get("font_family", "Arial"), self.config.get("font_size", 14))
         color = self.config.get("text_color", "#FFFFFF")
@@ -59,7 +61,32 @@ class OverlayWindow(QWidget):
         self.setPalette(palette)
         self.setAutoFillBackground(True)
         
-        self.move(self.config.get("position_x", 10), self.config.get("position_y", 10))
+        self.adjustSize()
+        self.update_position()
+
+    def update_position(self):
+        preset = self.config.get("position_preset", "custom")
+        screen = QGuiApplication.primaryScreen().availableGeometry()
+        
+        x, y = 10, 10
+        margin = 10
+        
+        if preset == "top-left":
+            x, y = margin, margin
+        elif preset == "top-right":
+            x = screen.width() - self.width() - margin
+            y = margin
+        elif preset == "bottom-left":
+            x = margin
+            y = screen.height() - self.height() - margin
+        elif preset == "bottom-right":
+            x = screen.width() - self.width() - margin
+            y = screen.height() - self.height() - margin
+        else: # custom
+            x = self.config.get("position_x", 10)
+            y = self.config.get("position_y", 10)
+            
+        self.move(x, y)
 
     def reload_settings(self):
         self.load_config()

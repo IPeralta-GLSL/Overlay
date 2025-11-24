@@ -11,8 +11,8 @@ TRANSLATIONS = {
         "text_color": "Text Color",
         "bg_color": "Background Color",
         "opacity": "Opacity",
-        "save": "Save",
-        "cancel": "Cancel",
+        "save": "Apply",
+        "cancel": "Close",
         "pick_color": "Pick Color",
         "position_x": "Position X",
         "position_y": "Position Y",
@@ -20,7 +20,13 @@ TRANSLATIONS = {
         "show_time": "Show Time",
         "show_cpu": "Show CPU",
         "show_ram": "Show RAM",
-        "show_gpu": "Show GPU"
+        "show_gpu": "Show GPU",
+        "position_preset": "Position Preset",
+        "preset_custom": "Custom",
+        "preset_top_left": "Top Left",
+        "preset_top_right": "Top Right",
+        "preset_bottom_left": "Bottom Left",
+        "preset_bottom_right": "Bottom Right"
     },
     "es": {
         "time": "Hora",
@@ -34,8 +40,8 @@ TRANSLATIONS = {
         "text_color": "Color de Texto",
         "bg_color": "Color de Fondo",
         "opacity": "Opacidad",
-        "save": "Guardar",
-        "cancel": "Cancelar",
+        "save": "Aplicar",
+        "cancel": "Cerrar",
         "pick_color": "Elegir Color",
         "position_x": "Posición X",
         "position_y": "Posición Y",
@@ -43,6 +49,12 @@ TRANSLATIONS = {
         "show_time": "Mostrar Hora",
         "show_cpu": "Mostrar CPU",
         "show_ram": "Mostrar RAM",
-        "show_gpu": "Mostrar GPU"
+        "show_gpu": "Mostrar GPU",
+        "position_preset": "Posición Predefinida",
+        "preset_custom": "Personalizada",
+        "preset_top_left": "Arriba Izquierda",
+        "preset_top_right": "Arriba Derecha",
+        "preset_bottom_left": "Abajo Izquierda",
+        "preset_bottom_right": "Abajo Derecha"
     }
 }

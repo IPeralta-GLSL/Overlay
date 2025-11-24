@@ -17,6 +17,7 @@ class ConfigManager:
             "update_interval_ms": 1000,
             "position_x": 10,
             "position_y": 10,
+            "position_preset": "top-left",
             "language": "es",
             "show_time": True,
             "show_cpu": True,
