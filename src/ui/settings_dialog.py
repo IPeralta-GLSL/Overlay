@@ -1,19 +1,17 @@
-import json
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QFormLayout, QComboBox, 
                                QSpinBox, QPushButton, QColorDialog, QSlider, 
                                QHBoxLayout, QLabel)
 from PySide6.QtCore import Qt
-from translations import TRANSLATIONS
+from src.utils.translations import TRANSLATIONS
 
 class SettingsDialog(QDialog):
-    def __init__(self, config, parent=None):
+    def __init__(self, config_manager, parent=None):
         super().__init__(parent)
-        self.config = config
-        self.current_lang = self.config.get("language", "es")
-        self.trans = TRANSLATIONS.get(self.current_lang, TRANSLATIONS["en"])
-        self.setWindowTitle(self.trans["settings"])
+        self.config_manager = config_manager
+        self.current_lang = self.config_manager.get("language", "es")
         self.apply_stylesheet()
         self.init_ui()
+        self.retranslate_ui()
 
     def apply_stylesheet(self):
         self.setStyleSheet("""
@@ -75,54 +73,72 @@ class SettingsDialog(QDialog):
 
     def init_ui(self):
         layout = QVBoxLayout()
-        form_layout = QFormLayout()
+        self.form_layout = QFormLayout()
 
         # Language
+        self.lang_label = QLabel()
         self.lang_combo = QComboBox()
         self.lang_combo.addItems(["en", "es"])
         self.lang_combo.setCurrentText(self.current_lang)
         self.lang_combo.currentTextChanged.connect(self.on_language_change)
-        form_layout.addRow(self.trans["language"], self.lang_combo)
+        self.form_layout.addRow(self.lang_label, self.lang_combo)
 
         # Font Size
+        self.font_size_label = QLabel()
         self.font_size_spin = QSpinBox()
         self.font_size_spin.setRange(8, 72)
-        self.font_size_spin.setValue(self.config.get("font_size", 14))
-        form_layout.addRow(self.trans["font_size"], self.font_size_spin)
+        self.font_size_spin.setValue(self.config_manager.get("font_size", 14))
+        self.form_layout.addRow(self.font_size_label, self.font_size_spin)
 
         # Text Color
-        self.text_color_btn = QPushButton(self.trans["pick_color"])
-        self.text_color = self.config.get("text_color", "#FFFFFF")
+        self.text_color_label = QLabel()
+        self.text_color_btn = QPushButton()
+        self.text_color = self.config_manager.get("text_color", "#FFFFFF")
         self.text_color_btn.setStyleSheet(f"background-color: {self.text_color}")
         self.text_color_btn.clicked.connect(lambda: self.pick_color("text"))
-        form_layout.addRow(self.trans["text_color"], self.text_color_btn)
+        self.form_layout.addRow(self.text_color_label, self.text_color_btn)
 
         # Background Color
-        self.bg_color_btn = QPushButton(self.trans["pick_color"])
-        self.bg_color = self.config.get("background_color", "#000000")
+        self.bg_color_label = QLabel()
+        self.bg_color_btn = QPushButton()
+        self.bg_color = self.config_manager.get("background_color", "#000000")
         self.bg_color_btn.setStyleSheet(f"background-color: {self.bg_color}")
         self.bg_color_btn.clicked.connect(lambda: self.pick_color("bg"))
-        form_layout.addRow(self.trans["bg_color"], self.bg_color_btn)
+        self.form_layout.addRow(self.bg_color_label, self.bg_color_btn)
 
         # Opacity
+        self.opacity_label = QLabel()
         self.opacity_slider = QSlider(Qt.Horizontal)
         self.opacity_slider.setRange(0, 100)
-        self.opacity_slider.setValue(int(self.config.get("background_opacity", 0.5) * 100))
-        form_layout.addRow(self.trans["opacity"], self.opacity_slider)
+        self.opacity_slider.setValue(int(self.config_manager.get("background_opacity", 0.5) * 100))
+        self.form_layout.addRow(self.opacity_label, self.opacity_slider)
 
-        layout.addLayout(form_layout)
+        layout.addLayout(self.form_layout)
 
         # Buttons
         btn_layout = QHBoxLayout()
-        save_btn = QPushButton(self.trans["save"])
-        save_btn.clicked.connect(self.save_settings)
-        cancel_btn = QPushButton(self.trans["cancel"])
-        cancel_btn.clicked.connect(self.reject)
-        btn_layout.addWidget(save_btn)
-        btn_layout.addWidget(cancel_btn)
+        self.save_btn = QPushButton()
+        self.save_btn.clicked.connect(self.save_settings)
+        self.cancel_btn = QPushButton()
+        self.cancel_btn.clicked.connect(self.reject)
+        btn_layout.addWidget(self.save_btn)
+        btn_layout.addWidget(self.cancel_btn)
         layout.addLayout(btn_layout)
 
         self.setLayout(layout)
+
+    def retranslate_ui(self):
+        trans = TRANSLATIONS.get(self.current_lang, TRANSLATIONS["en"])
+        self.setWindowTitle(trans["settings"])
+        self.lang_label.setText(trans["language"])
+        self.font_size_label.setText(trans["font_size"])
+        self.text_color_label.setText(trans["text_color"])
+        self.text_color_btn.setText(trans["pick_color"])
+        self.bg_color_label.setText(trans["bg_color"])
+        self.bg_color_btn.setText(trans["pick_color"])
+        self.opacity_label.setText(trans["opacity"])
+        self.save_btn.setText(trans["save"])
+        self.cancel_btn.setText(trans["cancel"])
 
     def pick_color(self, target):
         color = QColorDialog.getColor()
@@ -136,17 +152,14 @@ class SettingsDialog(QDialog):
                 self.bg_color_btn.setStyleSheet(f"background-color: {hex_color}")
 
     def on_language_change(self, text):
-        # Ideally reload UI text immediately, but for simplicity require restart or save
-        pass
+        self.current_lang = text
+        self.retranslate_ui()
 
     def save_settings(self):
-        self.config["language"] = self.lang_combo.currentText()
-        self.config["font_size"] = self.font_size_spin.value()
-        self.config["text_color"] = self.text_color
-        self.config["background_color"] = self.bg_color
-        self.config["background_opacity"] = self.opacity_slider.value() / 100.0
-        
-        with open('config.json', 'w') as f:
-            json.dump(self.config, f, indent=4)
-        
+        self.config_manager.set("language", self.lang_combo.currentText())
+        self.config_manager.set("font_size", self.font_size_spin.value())
+        self.config_manager.set("text_color", self.text_color)
+        self.config_manager.set("background_color", self.bg_color)
+        self.config_manager.set("background_opacity", self.opacity_slider.value() / 100.0)
+        self.config_manager.save_config()
         self.accept()

@@ -1,21 +1,20 @@
-import json
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QColor, QPalette, QFont
-from system_monitor import SystemMonitor
-from translations import TRANSLATIONS
+from src.core.system_monitor import SystemMonitor
+from src.utils.translations import TRANSLATIONS
 
 class OverlayWindow(QWidget):
-    def __init__(self):
+    def __init__(self, config_manager):
         super().__init__()
+        self.config_manager = config_manager
         self.monitor = SystemMonitor()
         self.load_config()
         self.init_ui()
         self.start_timer()
 
     def load_config(self):
-        with open('config.json', 'r') as f:
-            self.config = json.load(f)
+        self.config = self.config_manager.config
         self.lang = self.config.get("language", "es")
         self.trans = TRANSLATIONS.get(self.lang, TRANSLATIONS["en"])
 

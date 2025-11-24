@@ -21,11 +21,12 @@ except ImportError:
 
 from PySide6.QtWidgets import QApplication, QSystemTrayIcon, QMenu
 from PySide6.QtGui import QIcon, QAction, QPixmap, QColor
-from overlay_window import OverlayWindow
-from settings_dialog import SettingsDialog
-from translations import TRANSLATIONS
+from src.ui.overlay_window import OverlayWindow
+from src.ui.settings_dialog import SettingsDialog
+from src.core.config_manager import ConfigManager
+from src.utils.translations import TRANSLATIONS
 
-def create_tray_icon(app, window):
+def create_tray_icon(app, window, config_manager):
     tray_icon = QSystemTrayIcon(app)
     
     # Create a simple icon programmatically
@@ -34,16 +35,13 @@ def create_tray_icon(app, window):
     icon = QIcon(pixmap)
     tray_icon.setIcon(icon)
     
-    # Load config for language
-    with open('config.json', 'r') as f:
-        config = json.load(f)
-    lang = config.get("language", "es")
+    lang = config_manager.get("language", "es")
     trans = TRANSLATIONS.get(lang, TRANSLATIONS["en"])
 
     menu = QMenu()
     
     settings_action = QAction(trans["settings"], app)
-    settings_action.triggered.connect(lambda: open_settings(window))
+    settings_action.triggered.connect(lambda: open_settings(window, config_manager))
     menu.addAction(settings_action)
 
     exit_action = QAction(trans["exit"], app)
@@ -54,8 +52,8 @@ def create_tray_icon(app, window):
     tray_icon.show()
     return tray_icon
 
-def open_settings(window):
-    dialog = SettingsDialog(window.config)
+def open_settings(window, config_manager):
+    dialog = SettingsDialog(config_manager)
     if dialog.exec():
         window.reload_settings()
 
@@ -63,9 +61,10 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
     
-    window = OverlayWindow()
+    config_manager = ConfigManager()
+    window = OverlayWindow(config_manager)
     window.show()
     
-    tray_icon = create_tray_icon(app, window)
+    tray_icon = create_tray_icon(app, window, config_manager)
     
     sys.exit(app.exec())
