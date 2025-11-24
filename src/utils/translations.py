@@ -28,7 +28,10 @@ TRANSLATIONS = {
         "preset_top_right": "Top Right",
         "preset_bottom_left": "Bottom Left",
         "preset_bottom_center": "Bottom Center",
-        "preset_bottom_right": "Bottom Right"
+        "preset_bottom_right": "Bottom Right",
+        "position_label": "Position",
+        "axis_x": "X",
+        "axis_y": "Y"
     },
     "es": {
         "time": "Hora",
@@ -59,6 +62,9 @@ TRANSLATIONS = {
         "preset_top_right": "Arriba Derecha",
         "preset_bottom_left": "Abajo Izquierda",
         "preset_bottom_center": "Abajo Centro",
-        "preset_bottom_right": "Abajo Derecha"
+        "preset_bottom_right": "Abajo Derecha",
+        "position_label": "Posición",
+        "axis_x": "X",
+        "axis_y": "Y"
     }
 }

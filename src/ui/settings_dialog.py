@@ -125,6 +125,7 @@ class SettingsDialog(QDialog):
         # Custom Position (X, Y)
         self.custom_pos_layout = QHBoxLayout()
         
+        self.pos_label = QLabel()
         self.pos_x_label = QLabel()
         self.pos_x_spin = QSpinBox()
         self.pos_x_spin.setRange(0, 3000)
@@ -135,10 +136,12 @@ class SettingsDialog(QDialog):
         self.pos_y_spin.setRange(0, 2000)
         self.pos_y_spin.setValue(self.config_manager.get("position_y", 10))
 
+        self.custom_pos_layout.addWidget(self.pos_label)
         self.custom_pos_layout.addWidget(self.pos_x_label)
         self.custom_pos_layout.addWidget(self.pos_x_spin)
         self.custom_pos_layout.addWidget(self.pos_y_label)
         self.custom_pos_layout.addWidget(self.pos_y_spin)
+        self.custom_pos_layout.addStretch()
         
         self.form_layout.addRow(self.custom_pos_layout)
 
@@ -221,10 +224,11 @@ class SettingsDialog(QDialog):
         self.preset_combo.setItemText(4, trans["preset_bottom_left"])
         self.preset_combo.setItemText(5, trans["preset_bottom_center"])
         self.preset_combo.setItemText(6, trans["preset_bottom_right"])
+        self.pos_label.setText(trans["position_label"])
+        self.pos_x_label.setText(trans["axis_x"])
+        self.pos_y_label.setText(trans["axis_y"])
         self.font_family_label.setText(trans["font_family"])
         self.font_size_label.setText(trans["font_size"])
-        self.pos_x_label.setText(trans["position_x"])
-        self.pos_y_label.setText(trans["position_y"])
         self.text_color_label.setText(trans["text_color"])
         self.text_color_btn.setText(trans["pick_color"])
         self.bg_color_label.setText(trans["bg_color"])

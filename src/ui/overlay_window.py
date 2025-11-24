@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QColor, QPalette, QFont, QGuiApplication
+from PySide6.QtGui import QColor, QPalette, QFont, QGuiApplication, QPainter, QBrush
 from src.core.system_monitor import SystemMonitor
 from src.utils.translations import TRANSLATIONS
 
@@ -40,6 +40,15 @@ class OverlayWindow(QWidget):
 
         self.update_position()
 
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        bg_color = QColor(self.config.get("background_color", "#000000"))
+        bg_color.setAlphaF(self.config.get("background_opacity", 0.5))
+        painter.setBrush(QBrush(bg_color))
+        painter.setPen(Qt.NoPen)
+        painter.drawRect(self.rect())
+
     def apply_styles(self):
         font = QFont(self.config.get("font_family", "Arial"), self.config.get("font_size", 14))
         color = self.config.get("text_color", "#FFFFFF")
@@ -54,12 +63,8 @@ class OverlayWindow(QWidget):
             label.setFont(font)
             label.setStyleSheet(style)
 
-        bg_color = QColor(self.config.get("background_color", "#000000"))
-        bg_color.setAlphaF(self.config.get("background_opacity", 0.5))
-        palette = self.palette()
-        palette.setColor(QPalette.Window, bg_color)
-        self.setPalette(palette)
-        self.setAutoFillBackground(True)
+        # Background is handled in paintEvent now
+        self.update() # Trigger repaint
         
         self.adjustSize()
         self.update_position()
