@@ -11,9 +11,11 @@ class SettingsDialog(QDialog):
         self.config_manager = config_manager
         self.on_apply_callback = on_apply_callback
         self.current_lang = self.config_manager.get("language", "es")
+        self.initialized = False
         self.apply_stylesheet()
         self.init_ui()
         self.retranslate_ui()
+        self.initialized = True
         
         # Trigger initial state for preset
         self.on_preset_change(self.preset_combo.currentIndex())
@@ -200,17 +202,18 @@ class SettingsDialog(QDialog):
 
         layout.addLayout(self.form_layout)
 
-        # Buttons
-        btn_layout = QHBoxLayout()
-        self.save_btn = QPushButton()
-        self.save_btn.clicked.connect(self.save_settings)
-        self.cancel_btn = QPushButton()
-        self.cancel_btn.clicked.connect(self.reject)
-        btn_layout.addWidget(self.save_btn)
-        btn_layout.addWidget(self.cancel_btn)
-        layout.addLayout(btn_layout)
-
         self.setLayout(layout)
+        
+        # Connect signals for auto-save
+        self.font_family_combo.currentFontChanged.connect(lambda: self.save_settings())
+        self.font_size_spin.valueChanged.connect(lambda: self.save_settings())
+        self.pos_x_spin.valueChanged.connect(lambda: self.save_settings())
+        self.pos_y_spin.valueChanged.connect(lambda: self.save_settings())
+        self.opacity_slider.valueChanged.connect(lambda: self.save_settings())
+        self.show_time_check.toggled.connect(lambda: self.save_settings())
+        self.show_cpu_check.toggled.connect(lambda: self.save_settings())
+        self.show_ram_check.toggled.connect(lambda: self.save_settings())
+        self.show_gpu_check.toggled.connect(lambda: self.save_settings())
 
     def retranslate_ui(self):
         trans = TRANSLATIONS.get(self.current_lang, TRANSLATIONS["en"])
@@ -238,14 +241,13 @@ class SettingsDialog(QDialog):
         self.show_cpu_check.setText(trans["show_cpu"])
         self.show_ram_check.setText(trans["show_ram"])
         self.show_gpu_check.setText(trans["show_gpu"])
-        self.save_btn.setText(trans["save"])
-        self.cancel_btn.setText(trans["cancel"])
 
     def on_preset_change(self, index):
         key = self.preset_combo.itemData(index)
         is_custom = (key == "custom")
         self.pos_x_spin.setEnabled(is_custom)
         self.pos_y_spin.setEnabled(is_custom)
+        self.save_settings()
 
     def pick_color(self, target):
         color = QColorDialog.getColor()
@@ -257,12 +259,17 @@ class SettingsDialog(QDialog):
             else:
                 self.bg_color = hex_color
                 self.bg_color_btn.setStyleSheet(f"background-color: {hex_color}")
+            self.save_settings()
 
     def on_language_change(self, text):
         self.current_lang = text
         self.retranslate_ui()
+        self.save_settings()
 
     def save_settings(self):
+        if not hasattr(self, 'initialized') or not self.initialized:
+            return
+
         self.config_manager.set("language", self.lang_combo.currentText())
         self.config_manager.set("position_preset", self.preset_combo.currentData())
         self.config_manager.set("font_family", self.font_family_combo.currentFont().family())
@@ -280,4 +287,3 @@ class SettingsDialog(QDialog):
         
         if self.on_apply_callback:
             self.on_apply_callback()
-        # self.accept() # Do not close on apply

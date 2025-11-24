@@ -47,7 +47,7 @@ class OverlayWindow(QWidget):
         bg_color.setAlphaF(self.config.get("background_opacity", 0.5))
         painter.setBrush(QBrush(bg_color))
         painter.setPen(Qt.NoPen)
-        painter.drawRect(self.rect())
+        painter.drawRoundedRect(self.rect(), 15, 15)
 
     def apply_styles(self):
         font = QFont(self.config.get("font_family", "Arial"), self.config.get("font_size", 14))
