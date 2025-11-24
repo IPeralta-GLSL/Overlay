@@ -108,8 +108,10 @@ class SettingsDialog(QDialog):
         self.preset_combo = QComboBox()
         self.preset_combo.addItem("custom", "custom")
         self.preset_combo.addItem("top-left", "top-left")
+        self.preset_combo.addItem("top-center", "top-center")
         self.preset_combo.addItem("top-right", "top-right")
         self.preset_combo.addItem("bottom-left", "bottom-left")
+        self.preset_combo.addItem("bottom-center", "bottom-center")
         self.preset_combo.addItem("bottom-right", "bottom-right")
         
         current_preset = self.config_manager.get("position_preset", "custom")
@@ -119,6 +121,26 @@ class SettingsDialog(QDialog):
             
         self.preset_combo.currentIndexChanged.connect(self.on_preset_change)
         self.form_layout.addRow(self.preset_label, self.preset_combo)
+
+        # Custom Position (X, Y)
+        self.custom_pos_layout = QHBoxLayout()
+        
+        self.pos_x_label = QLabel()
+        self.pos_x_spin = QSpinBox()
+        self.pos_x_spin.setRange(0, 3000)
+        self.pos_x_spin.setValue(self.config_manager.get("position_x", 10))
+        
+        self.pos_y_label = QLabel()
+        self.pos_y_spin = QSpinBox()
+        self.pos_y_spin.setRange(0, 2000)
+        self.pos_y_spin.setValue(self.config_manager.get("position_y", 10))
+
+        self.custom_pos_layout.addWidget(self.pos_x_label)
+        self.custom_pos_layout.addWidget(self.pos_x_spin)
+        self.custom_pos_layout.addWidget(self.pos_y_label)
+        self.custom_pos_layout.addWidget(self.pos_y_spin)
+        
+        self.form_layout.addRow(self.custom_pos_layout)
 
         # Font Family
         self.font_family_label = QLabel()
@@ -132,20 +154,6 @@ class SettingsDialog(QDialog):
         self.font_size_spin.setRange(8, 72)
         self.font_size_spin.setValue(self.config_manager.get("font_size", 14))
         self.form_layout.addRow(self.font_size_label, self.font_size_spin)
-
-        # Position X
-        self.pos_x_label = QLabel()
-        self.pos_x_spin = QSpinBox()
-        self.pos_x_spin.setRange(0, 3000) # Assuming a reasonable max screen width
-        self.pos_x_spin.setValue(self.config_manager.get("position_x", 10))
-        self.form_layout.addRow(self.pos_x_label, self.pos_x_spin)
-
-        # Position Y
-        self.pos_y_label = QLabel()
-        self.pos_y_spin = QSpinBox()
-        self.pos_y_spin.setRange(0, 2000) # Assuming a reasonable max screen height
-        self.pos_y_spin.setValue(self.config_manager.get("position_y", 10))
-        self.form_layout.addRow(self.pos_y_label, self.pos_y_spin)
 
         # Text Color
         self.text_color_label = QLabel()
@@ -208,9 +216,11 @@ class SettingsDialog(QDialog):
         self.preset_label.setText(trans["position_preset"])
         self.preset_combo.setItemText(0, trans["preset_custom"])
         self.preset_combo.setItemText(1, trans["preset_top_left"])
-        self.preset_combo.setItemText(2, trans["preset_top_right"])
-        self.preset_combo.setItemText(3, trans["preset_bottom_left"])
-        self.preset_combo.setItemText(4, trans["preset_bottom_right"])
+        self.preset_combo.setItemText(2, trans["preset_top_center"])
+        self.preset_combo.setItemText(3, trans["preset_top_right"])
+        self.preset_combo.setItemText(4, trans["preset_bottom_left"])
+        self.preset_combo.setItemText(5, trans["preset_bottom_center"])
+        self.preset_combo.setItemText(6, trans["preset_bottom_right"])
         self.font_family_label.setText(trans["font_family"])
         self.font_size_label.setText(trans["font_size"])
         self.pos_x_label.setText(trans["position_x"])

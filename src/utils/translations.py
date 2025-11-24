@@ -24,8 +24,10 @@ TRANSLATIONS = {
         "position_preset": "Position Preset",
         "preset_custom": "Custom",
         "preset_top_left": "Top Left",
+        "preset_top_center": "Top Center",
         "preset_top_right": "Top Right",
         "preset_bottom_left": "Bottom Left",
+        "preset_bottom_center": "Bottom Center",
         "preset_bottom_right": "Bottom Right"
     },
     "es": {
@@ -53,8 +55,10 @@ TRANSLATIONS = {
         "position_preset": "Posición Predefinida",
         "preset_custom": "Personalizada",
         "preset_top_left": "Arriba Izquierda",
+        "preset_top_center": "Arriba Centro",
         "preset_top_right": "Arriba Derecha",
         "preset_bottom_left": "Abajo Izquierda",
+        "preset_bottom_center": "Abajo Centro",
         "preset_bottom_right": "Abajo Derecha"
     }
 }

@@ -73,11 +73,17 @@ class OverlayWindow(QWidget):
         
         if preset == "top-left":
             x, y = margin, margin
+        elif preset == "top-center":
+            x = (screen.width() - self.width()) // 2
+            y = margin
         elif preset == "top-right":
             x = screen.width() - self.width() - margin
             y = margin
         elif preset == "bottom-left":
             x = margin
+            y = screen.height() - self.height() - margin
+        elif preset == "bottom-center":
+            x = (screen.width() - self.width()) // 2
             y = screen.height() - self.height() - margin
         elif preset == "bottom-right":
             x = screen.width() - self.width() - margin
