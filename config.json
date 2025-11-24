@@ -1,8 +1,8 @@
 {
     "font_family": "Arial",
     "font_size": 14,
-    "text_color": "#FFFFFF",
-    "background_color": "#000000",
+    "text_color": "#4CAF50",
+    "background_color": "#2b2b2b",
     "background_opacity": 1.0,
     "update_interval_ms": 1000,
     "position_x": 10,

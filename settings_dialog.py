@@ -12,7 +12,66 @@ class SettingsDialog(QDialog):
         self.current_lang = self.config.get("language", "es")
         self.trans = TRANSLATIONS.get(self.current_lang, TRANSLATIONS["en"])
         self.setWindowTitle(self.trans["settings"])
+        self.apply_stylesheet()
         self.init_ui()
+
+    def apply_stylesheet(self):
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #2b2b2b;
+                color: #ffffff;
+            }
+            QLabel {
+                color: #ffffff;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            QComboBox, QSpinBox {
+                background-color: #3c3c3c;
+                color: #ffffff;
+                border: 1px solid #555555;
+                padding: 5px;
+                border-radius: 4px;
+            }
+            QComboBox::drop-down {
+                border: 0px;
+            }
+            QComboBox QAbstractItemView {
+                background-color: #3c3c3c;
+                color: #ffffff;
+                selection-background-color: #4CAF50;
+            }
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 4px;
+                font-weight: bold;
+                font-size: 13px;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+            QPushButton:pressed {
+                background-color: #3e8e41;
+            }
+            QSlider::groove:horizontal {
+                border: 1px solid #999999;
+                height: 8px;
+                background: #3c3c3c;
+                margin: 2px 0;
+                border-radius: 4px;
+            }
+            QSlider::handle:horizontal {
+                background: #4CAF50;
+                border: 1px solid #4CAF50;
+                width: 18px;
+                height: 18px;
+                margin: -7px 0;
+                border-radius: 9px;
+            }
+        """)
 
     def init_ui(self):
         layout = QVBoxLayout()
