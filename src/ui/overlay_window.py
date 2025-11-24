@@ -38,12 +38,15 @@ class OverlayWindow(QWidget):
         for label in [self.time_label, self.cpu_label, self.ram_label, self.gpu_label]:
             layout.addWidget(label)
 
-        self.move(self.config.get("position_x", 10), self.config.get("position_y", 10))
-
     def apply_styles(self):
         font = QFont(self.config.get("font_family", "Arial"), self.config.get("font_size", 14))
         color = self.config.get("text_color", "#FFFFFF")
         style = f"color: {color};"
+
+        self.time_label.setVisible(self.config.get("show_time", True))
+        self.cpu_label.setVisible(self.config.get("show_cpu", True))
+        self.ram_label.setVisible(self.config.get("show_ram", True))
+        self.gpu_label.setVisible(self.config.get("show_gpu", True))
 
         for label in [self.time_label, self.cpu_label, self.ram_label, self.gpu_label]:
             label.setFont(font)
@@ -55,6 +58,8 @@ class OverlayWindow(QWidget):
         palette.setColor(QPalette.Window, bg_color)
         self.setPalette(palette)
         self.setAutoFillBackground(True)
+        
+        self.move(self.config.get("position_x", 10), self.config.get("position_y", 10))
 
     def reload_settings(self):
         self.load_config()

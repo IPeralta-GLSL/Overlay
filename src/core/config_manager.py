@@ -17,7 +17,11 @@ class ConfigManager:
             "update_interval_ms": 1000,
             "position_x": 10,
             "position_y": 10,
-            "language": "es"
+            "language": "es",
+            "show_time": True,
+            "show_cpu": True,
+            "show_ram": True,
+            "show_gpu": True
         }
         self.config = self.load_config()
 

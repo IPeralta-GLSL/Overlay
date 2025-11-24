@@ -13,7 +13,14 @@ TRANSLATIONS = {
         "opacity": "Opacity",
         "save": "Save",
         "cancel": "Cancel",
-        "pick_color": "Pick Color"
+        "pick_color": "Pick Color",
+        "position_x": "Position X",
+        "position_y": "Position Y",
+        "font_family": "Font Family",
+        "show_time": "Show Time",
+        "show_cpu": "Show CPU",
+        "show_ram": "Show RAM",
+        "show_gpu": "Show GPU"
     },
     "es": {
         "time": "Hora",
@@ -29,6 +36,13 @@ TRANSLATIONS = {
         "opacity": "Opacidad",
         "save": "Guardar",
         "cancel": "Cancelar",
-        "pick_color": "Elegir Color"
+        "pick_color": "Elegir Color",
+        "position_x": "Posición X",
+        "position_y": "Posición Y",
+        "font_family": "Fuente",
+        "show_time": "Mostrar Hora",
+        "show_cpu": "Mostrar CPU",
+        "show_ram": "Mostrar RAM",
+        "show_gpu": "Mostrar GPU"
     }
 }
