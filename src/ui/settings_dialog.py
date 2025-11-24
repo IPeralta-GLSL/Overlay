@@ -4,6 +4,7 @@ from PySide6.QtWidgets import (QDialog, QVBoxLayout, QFormLayout, QComboBox,
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 from src.utils.translations import TRANSLATIONS
+from src.core.system_monitor import SystemMonitor
 
 class SettingsDialog(QDialog):
     def __init__(self, config_manager, on_apply_callback=None, parent=None):
@@ -192,13 +193,29 @@ class SettingsDialog(QDialog):
         self.show_cpu_check.setChecked(self.config_manager.get("show_cpu", True))
         self.form_layout.addRow("", self.show_cpu_check)
 
+        self.show_cpu_name_check = QCheckBox()
+        self.show_cpu_name_check.setChecked(self.config_manager.get("show_cpu_name", False))
+        self.form_layout.addRow("", self.show_cpu_name_check)
+
         self.show_ram_check = QCheckBox()
         self.show_ram_check.setChecked(self.config_manager.get("show_ram", True))
         self.form_layout.addRow("", self.show_ram_check)
 
-        self.show_gpu_check = QCheckBox()
-        self.show_gpu_check.setChecked(self.config_manager.get("show_gpu", True))
-        self.form_layout.addRow("", self.show_gpu_check)
+        # GPU Section
+        self.monitor = SystemMonitor()
+        gpu_info = self.monitor.get_gpu_info()
+        self.gpu_checks = {}
+        
+        gpu_visibility = self.config_manager.get("gpu_visibility", {})
+        
+        for name, _ in gpu_info:
+            check = QCheckBox(name)
+            # Default to True if not in config
+            is_visible = gpu_visibility.get(name, True)
+            check.setChecked(is_visible)
+            self.form_layout.addRow("", check)
+            self.gpu_checks[name] = check
+            check.toggled.connect(lambda: self.save_settings())
 
         layout.addLayout(self.form_layout)
 
@@ -212,8 +229,8 @@ class SettingsDialog(QDialog):
         self.opacity_slider.valueChanged.connect(lambda: self.save_settings())
         self.show_time_check.toggled.connect(lambda: self.save_settings())
         self.show_cpu_check.toggled.connect(lambda: self.save_settings())
+        self.show_cpu_name_check.toggled.connect(lambda: self.save_settings())
         self.show_ram_check.toggled.connect(lambda: self.save_settings())
-        self.show_gpu_check.toggled.connect(lambda: self.save_settings())
 
     def retranslate_ui(self):
         trans = TRANSLATIONS.get(self.current_lang, TRANSLATIONS["en"])
@@ -239,8 +256,8 @@ class SettingsDialog(QDialog):
         self.opacity_label.setText(trans["opacity"])
         self.show_time_check.setText(trans["show_time"])
         self.show_cpu_check.setText(trans["show_cpu"])
+        self.show_cpu_name_check.setText(trans["show_cpu_name"])
         self.show_ram_check.setText(trans["show_ram"])
-        self.show_gpu_check.setText(trans["show_gpu"])
 
     def on_preset_change(self, index):
         key = self.preset_combo.itemData(index)
@@ -281,8 +298,14 @@ class SettingsDialog(QDialog):
         self.config_manager.set("background_opacity", self.opacity_slider.value() / 100.0)
         self.config_manager.set("show_time", self.show_time_check.isChecked())
         self.config_manager.set("show_cpu", self.show_cpu_check.isChecked())
+        self.config_manager.set("show_cpu_name", self.show_cpu_name_check.isChecked())
         self.config_manager.set("show_ram", self.show_ram_check.isChecked())
-        self.config_manager.set("show_gpu", self.show_gpu_check.isChecked())
+        
+        gpu_visibility = {}
+        for name, check in self.gpu_checks.items():
+            gpu_visibility[name] = check.isChecked()
+        self.config_manager.set("gpu_visibility", gpu_visibility)
+        
         self.config_manager.save_config()
         
         if self.on_apply_callback:

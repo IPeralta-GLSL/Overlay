@@ -23,7 +23,7 @@ class OverlayWindow(QWidget):
         self.setAttribute(Qt.WA_TranslucentBackground)
         
         if self.layout():
-            QWidget().setLayout(self.layout()) # Clear existing layout
+            QWidget().setLayout(self.layout())
             
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -57,14 +57,13 @@ class OverlayWindow(QWidget):
         self.time_label.setVisible(self.config.get("show_time", True))
         self.cpu_label.setVisible(self.config.get("show_cpu", True))
         self.ram_label.setVisible(self.config.get("show_ram", True))
-        self.gpu_label.setVisible(self.config.get("show_gpu", True))
+        # GPU visibility is handled in update_stats based on individual GPU settings
 
         for label in [self.time_label, self.cpu_label, self.ram_label, self.gpu_label]:
             label.setFont(font)
             label.setStyleSheet(style)
 
-        # Background is handled in paintEvent now
-        self.update() # Trigger repaint
+        self.update()
         
         self.adjustSize()
         self.update_position()
@@ -93,7 +92,7 @@ class OverlayWindow(QWidget):
         elif preset == "bottom-right":
             x = screen.width() - self.width() - margin
             y = screen.height() - self.height() - margin
-        else: # custom
+        else:
             x = self.config.get("position_x", 10)
             y = self.config.get("position_y", 10)
             
@@ -110,7 +109,28 @@ class OverlayWindow(QWidget):
 
     def update_stats(self):
         self.time_label.setText(f"{self.trans['time']}: {self.monitor.get_current_time()}")
-        self.cpu_label.setText(f"{self.trans['cpu']}: {self.monitor.get_cpu_usage()}%")
+        
+        show_cpu_name = self.config.get("show_cpu_name", False)
+        cpu_label_text = self.monitor.cpu_name if show_cpu_name else self.trans['cpu']
+        self.cpu_label.setText(f"{cpu_label_text}: {self.monitor.get_cpu_usage()}%")
+        
         self.ram_label.setText(f"{self.trans['ram']}: {self.monitor.get_ram_usage()}%")
-        gpu_name = self.monitor.get_gpu_name()
-        self.gpu_label.setText(f"{gpu_name}: {self.monitor.get_gpu_usage():.1f}%")
+        
+        gpu_info = self.monitor.get_gpu_info()
+        gpu_visibility = self.config.get("gpu_visibility", {})
+        
+        visible_gpus = []
+        if gpu_info:
+            for name, usage in gpu_info:
+                if gpu_visibility.get(name, True):
+                    visible_gpus.append(f"{name}: {usage:.1f}%")
+            
+            if visible_gpus:
+                self.gpu_label.setText("\n".join(visible_gpus))
+                self.gpu_label.setVisible(True)
+            else:
+                self.gpu_label.setVisible(False)
+        else:
+            self.gpu_label.setVisible(False)
+            
+        self.adjustSize()
