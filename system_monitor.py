@@ -22,5 +22,17 @@ class SystemMonitor:
                 pass
         return 0.0
 
+    def get_gpu_name(self):
+        if shutil.which("nvidia-smi"):
+            try:
+                output = subprocess.check_output(
+                    ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+                    creationflags=subprocess.CREATE_NO_WINDOW
+                )
+                return output.decode("utf-8").strip()
+            except Exception:
+                pass
+        return "GPU"
+
     def get_current_time(self):
         return datetime.datetime.now().strftime("%H:%M:%S")

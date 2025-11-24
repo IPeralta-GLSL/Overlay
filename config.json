@@ -3,8 +3,9 @@
     "font_size": 14,
     "text_color": "#FFFFFF",
     "background_color": "#000000",
-    "background_opacity": 0.5,
+    "background_opacity": 1.0,
     "update_interval_ms": 1000,
     "position_x": 10,
-    "position_y": 10
+    "position_y": 10,
+    "language": "en"
 }

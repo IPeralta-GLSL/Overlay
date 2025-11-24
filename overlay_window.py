@@ -3,6 +3,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QColor, QPalette, QFont
 from system_monitor import SystemMonitor
+from translations import TRANSLATIONS
 
 class OverlayWindow(QWidget):
     def __init__(self):
@@ -15,11 +16,16 @@ class OverlayWindow(QWidget):
     def load_config(self):
         with open('config.json', 'r') as f:
             self.config = json.load(f)
+        self.lang = self.config.get("language", "es")
+        self.trans = TRANSLATIONS.get(self.lang, TRANSLATIONS["en"])
 
     def init_ui(self):
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
         self.setAttribute(Qt.WA_TranslucentBackground)
         
+        if self.layout():
+            QWidget().setLayout(self.layout()) # Clear existing layout
+            
         layout = QVBoxLayout()
         self.setLayout(layout)
 
@@ -28,6 +34,14 @@ class OverlayWindow(QWidget):
         self.ram_label = QLabel()
         self.gpu_label = QLabel()
 
+        self.apply_styles()
+
+        for label in [self.time_label, self.cpu_label, self.ram_label, self.gpu_label]:
+            layout.addWidget(label)
+
+        self.move(self.config.get("position_x", 10), self.config.get("position_y", 10))
+
+    def apply_styles(self):
         font = QFont(self.config.get("font_family", "Arial"), self.config.get("font_size", 14))
         color = self.config.get("text_color", "#FFFFFF")
         style = f"color: {color};"
@@ -35,7 +49,6 @@ class OverlayWindow(QWidget):
         for label in [self.time_label, self.cpu_label, self.ram_label, self.gpu_label]:
             label.setFont(font)
             label.setStyleSheet(style)
-            layout.addWidget(label)
 
         bg_color = QColor(self.config.get("background_color", "#000000"))
         bg_color.setAlphaF(self.config.get("background_opacity", 0.5))
@@ -44,7 +57,9 @@ class OverlayWindow(QWidget):
         self.setPalette(palette)
         self.setAutoFillBackground(True)
 
-        self.move(self.config.get("position_x", 10), self.config.get("position_y", 10))
+    def reload_settings(self):
+        self.load_config()
+        self.apply_styles()
 
     def start_timer(self):
         self.timer = QTimer(self)
@@ -52,7 +67,8 @@ class OverlayWindow(QWidget):
         self.timer.start(self.config.get("update_interval_ms", 1000))
 
     def update_stats(self):
-        self.time_label.setText(f"Time: {self.monitor.get_current_time()}")
-        self.cpu_label.setText(f"CPU: {self.monitor.get_cpu_usage()}%")
-        self.ram_label.setText(f"RAM: {self.monitor.get_ram_usage()}%")
-        self.gpu_label.setText(f"GPU: {self.monitor.get_gpu_usage():.1f}%")
+        self.time_label.setText(f"{self.trans['time']}: {self.monitor.get_current_time()}")
+        self.cpu_label.setText(f"{self.trans['cpu']}: {self.monitor.get_cpu_usage()}%")
+        self.ram_label.setText(f"{self.trans['ram']}: {self.monitor.get_ram_usage()}%")
+        gpu_name = self.monitor.get_gpu_name()
+        self.gpu_label.setText(f"{gpu_name}: {self.monitor.get_gpu_usage():.1f}%")
