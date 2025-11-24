@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Distribution / Packaging
+dist/
+build/
+*.spec
+
+# OS generated files
+.DS_Store
+Thumbs.db
