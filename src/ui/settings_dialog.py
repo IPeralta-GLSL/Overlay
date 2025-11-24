@@ -112,6 +112,33 @@ class SettingsDialog(QDialog):
             QScrollArea > QWidget > QWidget {
                 background-color: transparent;
             }
+            QScrollBar:vertical {
+                border: none;
+                background: #2b2b2b;
+                width: 10px;
+                margin: 0px 0px 0px 0px;
+            }
+            QScrollBar::handle:vertical {
+                background: #555555;
+                min-height: 20px;
+                border-radius: 5px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background: #4CAF50;
+            }
+            QScrollBar::add-line:vertical {
+                height: 0px;
+                subcontrol-position: bottom;
+                subcontrol-origin: margin;
+            }
+            QScrollBar::sub-line:vertical {
+                height: 0px;
+                subcontrol-position: top;
+                subcontrol-origin: margin;
+            }
+            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+                background: none;
+            }
         """)
 
     def init_ui(self):
@@ -119,6 +146,7 @@ class SettingsDialog(QDialog):
         
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         scroll_content = QWidget()
         scroll_layout = QVBoxLayout(scroll_content)
         

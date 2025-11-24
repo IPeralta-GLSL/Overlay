@@ -48,6 +48,10 @@ def create_tray_icon(app, window, config_manager):
     menu.addAction(exit_action)
 
     tray_icon.setContextMenu(menu)
+    
+    # Connect activation signal (click) to open settings
+    tray_icon.activated.connect(lambda reason: open_settings(window, config_manager) if reason == QSystemTrayIcon.Trigger else None)
+    
     tray_icon.show()
     return tray_icon
 
@@ -65,5 +69,8 @@ if __name__ == "__main__":
     window.show()
     
     tray_icon = create_tray_icon(app, window, config_manager)
+    
+    # Open settings on startup
+    open_settings(window, config_manager)
     
     sys.exit(app.exec())
