@@ -118,12 +118,17 @@ class OverlayWindow(QWidget):
         
         gpu_info = self.monitor.get_gpu_info()
         gpu_visibility = self.config.get("gpu_visibility", {})
+        show_gpu_name = self.config.get("show_gpu_name", True)
         
         visible_gpus = []
         if gpu_info:
-            for name, usage in gpu_info:
+            for i, (name, usage) in enumerate(gpu_info):
                 if gpu_visibility.get(name, True):
-                    visible_gpus.append(f"{name}: {usage:.1f}%")
+                    if show_gpu_name:
+                        display_name = name
+                    else:
+                        display_name = f"GPU {i+1}" if len(gpu_info) > 1 else "GPU"
+                    visible_gpus.append(f"{display_name}: {usage:.1f}%")
             
             if visible_gpus:
                 self.gpu_label.setText("\n".join(visible_gpus))

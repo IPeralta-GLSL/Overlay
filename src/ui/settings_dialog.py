@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QFormLayout, QComboBox, 
                                QSpinBox, QPushButton, QColorDialog, QSlider, 
-                               QHBoxLayout, QLabel, QFontComboBox, QCheckBox)
+                               QHBoxLayout, QLabel, QFontComboBox, QCheckBox, QGroupBox, QScrollArea, QWidget)
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 from src.utils.translations import TRANSLATIONS
@@ -92,19 +92,97 @@ class SettingsDialog(QDialog):
                 margin: -7px 0;
                 border-radius: 9px;
             }
+            QGroupBox {
+                border: 1px solid #555555;
+                border-radius: 5px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                subcontrol-position: top left;
+                padding: 0 3px;
+                color: #4CAF50;
+                font-weight: bold;
+            }
+            QScrollArea {
+                border: none;
+                background-color: transparent;
+            }
+            QScrollArea > QWidget > QWidget {
+                background-color: transparent;
+            }
         """)
 
     def init_ui(self):
-        layout = QVBoxLayout()
-        self.form_layout = QFormLayout()
-
+        main_layout = QVBoxLayout()
+        
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_content = QWidget()
+        scroll_layout = QVBoxLayout(scroll_content)
+        
+        # --- General Group ---
+        self.group_general = QGroupBox()
+        general_layout = QFormLayout()
+        
         # Language
         self.lang_label = QLabel()
         self.lang_combo = QComboBox()
         self.lang_combo.addItems(["en", "es"])
         self.lang_combo.setCurrentText(self.current_lang)
         self.lang_combo.currentTextChanged.connect(self.on_language_change)
-        self.form_layout.addRow(self.lang_label, self.lang_combo)
+        general_layout.addRow(self.lang_label, self.lang_combo)
+        
+        self.group_general.setLayout(general_layout)
+        scroll_layout.addWidget(self.group_general)
+
+        # --- Appearance Group ---
+        self.group_appearance = QGroupBox()
+        appearance_layout = QFormLayout()
+
+        # Font Family
+        self.font_family_label = QLabel()
+        self.font_family_combo = QFontComboBox()
+        self.font_family_combo.setCurrentFont(QFont(self.config_manager.get("font_family", "Arial")))
+        appearance_layout.addRow(self.font_family_label, self.font_family_combo)
+
+        # Font Size
+        self.font_size_label = QLabel()
+        self.font_size_spin = QSpinBox()
+        self.font_size_spin.setRange(8, 72)
+        self.font_size_spin.setValue(self.config_manager.get("font_size", 14))
+        appearance_layout.addRow(self.font_size_label, self.font_size_spin)
+
+        # Text Color
+        self.text_color_label = QLabel()
+        self.text_color_btn = QPushButton()
+        self.text_color = self.config_manager.get("text_color", "#FFFFFF")
+        self.text_color_btn.setStyleSheet(f"background-color: {self.text_color}")
+        self.text_color_btn.clicked.connect(lambda: self.pick_color("text"))
+        appearance_layout.addRow(self.text_color_label, self.text_color_btn)
+
+        # Background Color
+        self.bg_color_label = QLabel()
+        self.bg_color_btn = QPushButton()
+        self.bg_color = self.config_manager.get("background_color", "#000000")
+        self.bg_color_btn.setStyleSheet(f"background-color: {self.bg_color}")
+        self.bg_color_btn.clicked.connect(lambda: self.pick_color("bg"))
+        appearance_layout.addRow(self.bg_color_label, self.bg_color_btn)
+
+        # Opacity
+        self.opacity_label = QLabel()
+        self.opacity_slider = QSlider(Qt.Horizontal)
+        self.opacity_slider.setRange(0, 100)
+        self.opacity_slider.setValue(int(self.config_manager.get("background_opacity", 0.5) * 100))
+        appearance_layout.addRow(self.opacity_label, self.opacity_slider)
+        
+        self.group_appearance.setLayout(appearance_layout)
+        scroll_layout.addWidget(self.group_appearance)
+
+        # --- Position Group ---
+        self.group_position = QGroupBox()
+        position_layout = QFormLayout()
 
         # Position Preset
         self.preset_label = QLabel()
@@ -123,7 +201,7 @@ class SettingsDialog(QDialog):
             self.preset_combo.setCurrentIndex(index)
             
         self.preset_combo.currentIndexChanged.connect(self.on_preset_change)
-        self.form_layout.addRow(self.preset_label, self.preset_combo)
+        position_layout.addRow(self.preset_label, self.preset_combo)
 
         # Custom Position (X, Y)
         self.custom_pos_layout = QHBoxLayout()
@@ -146,60 +224,36 @@ class SettingsDialog(QDialog):
         self.custom_pos_layout.addWidget(self.pos_y_spin)
         self.custom_pos_layout.addStretch()
         
-        self.form_layout.addRow(self.custom_pos_layout)
+        position_layout.addRow(self.custom_pos_layout)
+        
+        self.group_position.setLayout(position_layout)
+        scroll_layout.addWidget(self.group_position)
 
-        # Font Family
-        self.font_family_label = QLabel()
-        self.font_family_combo = QFontComboBox()
-        self.font_family_combo.setCurrentFont(QFont(self.config_manager.get("font_family", "Arial")))
-        self.form_layout.addRow(self.font_family_label, self.font_family_combo)
-
-        # Font Size
-        self.font_size_label = QLabel()
-        self.font_size_spin = QSpinBox()
-        self.font_size_spin.setRange(8, 72)
-        self.font_size_spin.setValue(self.config_manager.get("font_size", 14))
-        self.form_layout.addRow(self.font_size_label, self.font_size_spin)
-
-        # Text Color
-        self.text_color_label = QLabel()
-        self.text_color_btn = QPushButton()
-        self.text_color = self.config_manager.get("text_color", "#FFFFFF")
-        self.text_color_btn.setStyleSheet(f"background-color: {self.text_color}")
-        self.text_color_btn.clicked.connect(lambda: self.pick_color("text"))
-        self.form_layout.addRow(self.text_color_label, self.text_color_btn)
-
-        # Background Color
-        self.bg_color_label = QLabel()
-        self.bg_color_btn = QPushButton()
-        self.bg_color = self.config_manager.get("background_color", "#000000")
-        self.bg_color_btn.setStyleSheet(f"background-color: {self.bg_color}")
-        self.bg_color_btn.clicked.connect(lambda: self.pick_color("bg"))
-        self.form_layout.addRow(self.bg_color_label, self.bg_color_btn)
-
-        # Opacity
-        self.opacity_label = QLabel()
-        self.opacity_slider = QSlider(Qt.Horizontal)
-        self.opacity_slider.setRange(0, 100)
-        self.opacity_slider.setValue(int(self.config_manager.get("background_opacity", 0.5) * 100))
-        self.form_layout.addRow(self.opacity_label, self.opacity_slider)
+        # --- Content Group ---
+        self.group_content = QGroupBox()
+        content_layout = QFormLayout()
 
         # Visibility Toggles
         self.show_time_check = QCheckBox()
         self.show_time_check.setChecked(self.config_manager.get("show_time", True))
-        self.form_layout.addRow("", self.show_time_check)
+        content_layout.addRow("", self.show_time_check)
 
         self.show_cpu_check = QCheckBox()
         self.show_cpu_check.setChecked(self.config_manager.get("show_cpu", True))
-        self.form_layout.addRow("", self.show_cpu_check)
+        content_layout.addRow("", self.show_cpu_check)
 
         self.show_cpu_name_check = QCheckBox()
         self.show_cpu_name_check.setChecked(self.config_manager.get("show_cpu_name", False))
-        self.form_layout.addRow("", self.show_cpu_name_check)
+        content_layout.addRow("", self.show_cpu_name_check)
 
         self.show_ram_check = QCheckBox()
         self.show_ram_check.setChecked(self.config_manager.get("show_ram", True))
-        self.form_layout.addRow("", self.show_ram_check)
+        content_layout.addRow("", self.show_ram_check)
+        
+        # GPU Name Toggle
+        self.show_gpu_name_check = QCheckBox()
+        self.show_gpu_name_check.setChecked(self.config_manager.get("show_gpu_name", True))
+        content_layout.addRow("", self.show_gpu_name_check)
 
         # GPU Section
         self.monitor = SystemMonitor()
@@ -208,18 +262,24 @@ class SettingsDialog(QDialog):
         
         gpu_visibility = self.config_manager.get("gpu_visibility", {})
         
-        for name, _ in gpu_info:
-            check = QCheckBox(name)
-            # Default to True if not in config
-            is_visible = gpu_visibility.get(name, True)
-            check.setChecked(is_visible)
-            self.form_layout.addRow("", check)
-            self.gpu_checks[name] = check
-            check.toggled.connect(lambda: self.save_settings())
+        if gpu_info:
+            gpu_label = QLabel("GPUs:")
+            content_layout.addRow(gpu_label)
+            for name, _ in gpu_info:
+                check = QCheckBox(name)
+                # Default to True if not in config
+                is_visible = gpu_visibility.get(name, True)
+                check.setChecked(is_visible)
+                content_layout.addRow("", check)
+                self.gpu_checks[name] = check
+                check.toggled.connect(lambda: self.save_settings())
 
-        layout.addLayout(self.form_layout)
+        self.group_content.setLayout(content_layout)
+        scroll_layout.addWidget(self.group_content)
 
-        self.setLayout(layout)
+        scroll_area.setWidget(scroll_content)
+        main_layout.addWidget(scroll_area)
+        self.setLayout(main_layout)
         
         # Connect signals for auto-save
         self.font_family_combo.currentFontChanged.connect(lambda: self.save_settings())
@@ -231,10 +291,17 @@ class SettingsDialog(QDialog):
         self.show_cpu_check.toggled.connect(lambda: self.save_settings())
         self.show_cpu_name_check.toggled.connect(lambda: self.save_settings())
         self.show_ram_check.toggled.connect(lambda: self.save_settings())
+        self.show_gpu_name_check.toggled.connect(lambda: self.save_settings())
 
     def retranslate_ui(self):
         trans = TRANSLATIONS.get(self.current_lang, TRANSLATIONS["en"])
         self.setWindowTitle(trans["settings"])
+        
+        self.group_general.setTitle(trans["tab_general"])
+        self.group_appearance.setTitle(trans["tab_appearance"])
+        self.group_position.setTitle(trans["tab_position"])
+        self.group_content.setTitle(trans["tab_content"])
+        
         self.lang_label.setText(trans["language"])
         self.preset_label.setText(trans["position_preset"])
         self.preset_combo.setItemText(0, trans["preset_custom"])
@@ -258,6 +325,7 @@ class SettingsDialog(QDialog):
         self.show_cpu_check.setText(trans["show_cpu"])
         self.show_cpu_name_check.setText(trans["show_cpu_name"])
         self.show_ram_check.setText(trans["show_ram"])
+        self.show_gpu_name_check.setText(trans["show_gpu_name"])
 
     def on_preset_change(self, index):
         key = self.preset_combo.itemData(index)
@@ -300,6 +368,7 @@ class SettingsDialog(QDialog):
         self.config_manager.set("show_cpu", self.show_cpu_check.isChecked())
         self.config_manager.set("show_cpu_name", self.show_cpu_name_check.isChecked())
         self.config_manager.set("show_ram", self.show_ram_check.isChecked())
+        self.config_manager.set("show_gpu_name", self.show_gpu_name_check.isChecked())
         
         gpu_visibility = {}
         for name, check in self.gpu_checks.items():

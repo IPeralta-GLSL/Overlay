@@ -22,6 +22,7 @@ TRANSLATIONS = {
         "show_cpu_name": "Show CPU Name",
         "show_ram": "Show RAM",
         "show_gpu": "Show GPU",
+        "show_gpu_name": "Show GPU Name",
         "position_preset": "Position Preset",
         "preset_custom": "Custom",
         "preset_top_left": "Top Left",
@@ -32,7 +33,11 @@ TRANSLATIONS = {
         "preset_bottom_right": "Bottom Right",
         "position_label": "Position",
         "axis_x": "X",
-        "axis_y": "Y"
+        "axis_y": "Y",
+        "tab_general": "General",
+        "tab_appearance": "Appearance",
+        "tab_position": "Position",
+        "tab_content": "Content"
     },
     "es": {
         "time": "Hora",
@@ -57,6 +62,7 @@ TRANSLATIONS = {
         "show_cpu_name": "Mostrar Nombre CPU",
         "show_ram": "Mostrar RAM",
         "show_gpu": "Mostrar GPU",
+        "show_gpu_name": "Mostrar Nombre GPU",
         "position_preset": "Posición Predefinida",
         "preset_custom": "Personalizada",
         "preset_top_left": "Arriba Izquierda",
@@ -67,6 +73,10 @@ TRANSLATIONS = {
         "preset_bottom_right": "Abajo Derecha",
         "position_label": "Posición",
         "axis_x": "X",
-        "axis_y": "Y"
+        "axis_y": "Y",
+        "tab_general": "General",
+        "tab_appearance": "Apariencia",
+        "tab_position": "Posición",
+        "tab_content": "Contenido"
     }
 }
