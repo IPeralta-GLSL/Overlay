@@ -2,7 +2,7 @@ from PySide6 .QtWidgets import (QDialog ,QVBoxLayout ,QFormLayout ,QComboBox ,
 QSpinBox ,QPushButton ,QColorDialog ,QSlider ,
 QHBoxLayout ,QLabel ,QFontComboBox ,QCheckBox ,QGroupBox ,QScrollArea ,QWidget )
 from PySide6 .QtCore import Qt 
-from PySide6 .QtGui import QFont 
+from PySide6 .QtGui import QFont ,QFontDatabase
 from src .utils .translations import TRANSLATIONS 
 from src .core .system_monitor import SystemMonitor 
 
@@ -171,8 +171,9 @@ class SettingsDialog (QDialog ):
 
 
         self .font_family_label =QLabel ()
-        self .font_family_combo =QFontComboBox ()
-        self .font_family_combo .setCurrentFont (QFont (self .config_manager .get ("font_family","Arial")))
+        self .font_family_combo =QComboBox ()
+        self .font_family_combo .addItems (QFontDatabase .families ())
+        self .font_family_combo .setCurrentText (self .config_manager .get ("font_family","Arial"))
         appearance_layout .addRow (self .font_family_label ,self .font_family_combo )
 
 
@@ -331,7 +332,7 @@ class SettingsDialog (QDialog ):
         self .setLayout (main_layout )
 
 
-        self .font_family_combo .currentFontChanged .connect (lambda :self .save_settings ())
+        self .font_family_combo .currentTextChanged .connect (lambda :self .save_settings ())
         self .font_size_spin .valueChanged .connect (lambda :self .save_settings ())
         self .pos_x_spin .valueChanged .connect (lambda :self .save_settings ())
         self .pos_y_spin .valueChanged .connect (lambda :self .save_settings ())
@@ -413,7 +414,7 @@ class SettingsDialog (QDialog ):
 
         self .config_manager .set ("language",self .lang_combo .currentText ())
         self .config_manager .set ("position_preset",self .preset_combo .currentData ())
-        self .config_manager .set ("font_family",self .font_family_combo .currentFont ().family ())
+        self .config_manager .set ("font_family",self .font_family_combo .currentText ())
         self .config_manager .set ("font_size",self .font_size_spin .value ())
         self .config_manager .set ("position_x",self .pos_x_spin .value ())
         self .config_manager .set ("position_y",self .pos_y_spin .value ())
