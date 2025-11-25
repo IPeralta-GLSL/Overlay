@@ -22,7 +22,9 @@ class ConfigManager :
         "show_time":True ,
         "show_cpu":True ,
         "show_ram":True ,
-        "show_gpu":True 
+        "show_gpu":True ,
+        "show_cpu_manufacturer":True ,
+        "show_gpu_manufacturer":True 
         }
         self .config =self .load_config ()
 

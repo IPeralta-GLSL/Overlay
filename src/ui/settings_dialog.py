@@ -259,30 +259,49 @@ class SettingsDialog (QDialog ):
 
 
         self .group_content =QGroupBox ()
-        content_layout =QFormLayout ()
+        content_layout =QVBoxLayout ()
 
-
+        # --- Components Group ---
+        self.group_components = QGroupBox()
+        components_layout = QFormLayout()
+        
         self .show_time_check =QCheckBox ()
         self .show_time_check .setChecked (self .config_manager .get ("show_time",True ))
-        content_layout .addRow ("",self .show_time_check )
+        components_layout .addRow ("",self .show_time_check )
 
         self .show_cpu_check =QCheckBox ()
         self .show_cpu_check .setChecked (self .config_manager .get ("show_cpu",True ))
-        content_layout .addRow ("",self .show_cpu_check )
-
-        self .show_cpu_name_check =QCheckBox ()
-        self .show_cpu_name_check .setChecked (self .config_manager .get ("show_cpu_name",False ))
-        content_layout .addRow ("",self .show_cpu_name_check )
+        components_layout .addRow ("",self .show_cpu_check )
 
         self .show_ram_check =QCheckBox ()
         self .show_ram_check .setChecked (self .config_manager .get ("show_ram",True ))
-        content_layout .addRow ("",self .show_ram_check )
+        components_layout .addRow ("",self .show_ram_check )
+        
+        self.group_components.setLayout(components_layout)
+        content_layout.addWidget(self.group_components)
 
+        # --- Details Group ---
+        self.group_details = QGroupBox()
+        details_layout = QFormLayout()
+
+        self .show_cpu_name_check =QCheckBox ()
+        self .show_cpu_name_check .setChecked (self .config_manager .get ("show_cpu_name",False ))
+        details_layout .addRow ("",self .show_cpu_name_check )
+        
+        self.show_cpu_manufacturer_check = QCheckBox()
+        self.show_cpu_manufacturer_check.setChecked(self.config_manager.get("show_cpu_manufacturer", True))
+        details_layout.addRow("", self.show_cpu_manufacturer_check)
 
         self .show_gpu_name_check =QCheckBox ()
         self .show_gpu_name_check .setChecked (self .config_manager .get ("show_gpu_name",True ))
-        content_layout .addRow ("",self .show_gpu_name_check )
-
+        details_layout .addRow ("",self .show_gpu_name_check )
+        
+        self.show_gpu_manufacturer_check = QCheckBox()
+        self.show_gpu_manufacturer_check.setChecked(self.config_manager.get("show_gpu_manufacturer", True))
+        details_layout.addRow("", self.show_gpu_manufacturer_check)
+        
+        self.group_details.setLayout(details_layout)
+        content_layout.addWidget(self.group_details)
 
         self .monitor =SystemMonitor ()
         gpu_info =self .monitor .get_gpu_info ()
@@ -291,16 +310,18 @@ class SettingsDialog (QDialog ):
         gpu_visibility =self .config_manager .get ("gpu_visibility",{})
 
         if gpu_info :
-            gpu_label =QLabel ("GPUs:")
-            content_layout .addRow (gpu_label )
+            gpu_group = QGroupBox("GPUs")
+            gpu_layout = QFormLayout()
             for name ,_ in gpu_info :
                 check =QCheckBox (name )
 
                 is_visible =gpu_visibility .get (name ,True )
                 check .setChecked (is_visible )
-                content_layout .addRow ("",check )
+                gpu_layout .addRow ("",check )
                 self .gpu_checks [name ]=check 
                 check .toggled .connect (lambda :self .save_settings ())
+            gpu_group.setLayout(gpu_layout)
+            content_layout.addWidget(gpu_group)
 
         self .group_content .setLayout (content_layout )
         scroll_layout .addWidget (self .group_content )
@@ -318,8 +339,10 @@ class SettingsDialog (QDialog ):
         self .show_time_check .toggled .connect (lambda :self .save_settings ())
         self .show_cpu_check .toggled .connect (lambda :self .save_settings ())
         self .show_cpu_name_check .toggled .connect (lambda :self .save_settings ())
+        self.show_cpu_manufacturer_check.toggled.connect(lambda: self.save_settings())
         self .show_ram_check .toggled .connect (lambda :self .save_settings ())
         self .show_gpu_name_check .toggled .connect (lambda :self .save_settings ())
+        self.show_gpu_manufacturer_check.toggled.connect(lambda: self.save_settings())
 
     def retranslate_ui (self ):
         trans =TRANSLATIONS .get (self .current_lang ,TRANSLATIONS ["en"])
@@ -352,8 +375,13 @@ class SettingsDialog (QDialog ):
         self .show_time_check .setText (trans ["show_time"])
         self .show_cpu_check .setText (trans ["show_cpu"])
         self .show_cpu_name_check .setText (trans ["show_cpu_name"])
+        self.show_cpu_manufacturer_check.setText(trans["show_cpu_manufacturer"])
         self .show_ram_check .setText (trans ["show_ram"])
         self .show_gpu_name_check .setText (trans ["show_gpu_name"])
+        self.show_gpu_manufacturer_check.setText(trans["show_gpu_manufacturer"])
+        
+        self.group_components.setTitle(trans["cat_components"])
+        self.group_details.setTitle(trans["cat_details"])
 
     def on_preset_change (self ,index ):
         key =self .preset_combo .itemData (index )
@@ -395,8 +423,10 @@ class SettingsDialog (QDialog ):
         self .config_manager .set ("show_time",self .show_time_check .isChecked ())
         self .config_manager .set ("show_cpu",self .show_cpu_check .isChecked ())
         self .config_manager .set ("show_cpu_name",self .show_cpu_name_check .isChecked ())
+        self.config_manager.set("show_cpu_manufacturer", self.show_cpu_manufacturer_check.isChecked())
         self .config_manager .set ("show_ram",self .show_ram_check .isChecked ())
         self .config_manager .set ("show_gpu_name",self .show_gpu_name_check .isChecked ())
+        self.config_manager.set("show_gpu_manufacturer", self.show_gpu_manufacturer_check.isChecked())
 
         gpu_visibility ={}
         for name ,check in self .gpu_checks .items ():

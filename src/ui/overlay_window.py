@@ -107,11 +107,47 @@ class OverlayWindow (QWidget ):
         self .timer .timeout .connect (self .update_stats )
         self .timer .start (self .config .get ("update_interval_ms",1000 ))
 
+    def _clean_manufacturer(self, name, show_manufacturer):
+        if show_manufacturer:
+            return name
+        
+        # Common manufacturers to strip
+        manufacturers = ["Intel(R)", "Intel", "AMD", "NVIDIA", "Nvidia", "GeForce", "Radeon"]
+        cleaned_name = name
+        for m in manufacturers:
+            if cleaned_name.lower().startswith(m.lower()):
+                # Remove the manufacturer and any following space
+                cleaned_name = cleaned_name[len(m):].strip()
+                # Also strip common suffixes like (R) or (TM) if they were part of the manufacturer string logic
+                # but here we just strip the word.
+                # Let's do a more robust strip
+                pass
+        
+        # Re-implement with a cleaner approach
+        for m in manufacturers:
+            if cleaned_name.lower().startswith(m.lower()):
+                 cleaned_name = cleaned_name[len(m):].strip()
+        
+        # Clean up artifacts like (R), (TM) at the start if they remain
+        artifacts = ["(R)", "(TM)", "Core(TM)"]
+        for a in artifacts:
+             if cleaned_name.lower().startswith(a.lower()):
+                 cleaned_name = cleaned_name[len(a):].strip()
+                 
+        return cleaned_name if cleaned_name else name
+
     def update_stats (self ):
         self .time_label .setText (f"{self .trans ['time']}: {self .monitor .get_current_time ()}")
 
         show_cpu_name =self .config .get ("show_cpu_name",False )
-        cpu_label_text =self .monitor .cpu_name if show_cpu_name else self .trans ['cpu']
+        show_cpu_manufacturer = self.config.get("show_cpu_manufacturer", True)
+        
+        if show_cpu_name:
+            cpu_name = self.monitor.cpu_name
+            cpu_label_text = self._clean_manufacturer(cpu_name, show_cpu_manufacturer)
+        else:
+            cpu_label_text = self.trans['cpu']
+            
         self .cpu_label .setText (f"{cpu_label_text }: {self .monitor .get_cpu_usage ()}%")
 
         self .ram_label .setText (f"{self .trans ['ram']}: {self .monitor .get_ram_usage ()}%")
@@ -119,13 +155,14 @@ class OverlayWindow (QWidget ):
         gpu_info =self .monitor .get_gpu_info ()
         gpu_visibility =self .config .get ("gpu_visibility",{})
         show_gpu_name =self .config .get ("show_gpu_name",True )
+        show_gpu_manufacturer = self.config.get("show_gpu_manufacturer", True)
 
         visible_gpus =[]
         if gpu_info :
             for i ,(name ,usage )in enumerate (gpu_info ):
                 if gpu_visibility .get (name ,True ):
                     if show_gpu_name :
-                        display_name =name 
+                        display_name = self._clean_manufacturer(name, show_gpu_manufacturer)
                     else :
                         display_name =f"GPU {i +1 }"if len (gpu_info )>1 else "GPU"
                     visible_gpus .append (f"{display_name }: {usage :.1f}%")
