@@ -55,10 +55,22 @@ def create_tray_icon (app ,window ,config_manager ):
     tray_icon .show ()
     return tray_icon 
 
-def open_settings (window ,config_manager ):
+_settings_dialog = None
 
-    dialog =SettingsDialog (config_manager ,on_apply_callback =window .reload_settings )
-    dialog .exec ()
+def _reset_settings_dialog():
+    global _settings_dialog
+    _settings_dialog = None
+
+def open_settings(window, config_manager):
+    global _settings_dialog
+    if _settings_dialog is None:
+        _settings_dialog = SettingsDialog(config_manager, on_apply_callback=window.reload_settings)
+        _settings_dialog.finished.connect(_reset_settings_dialog)
+        _settings_dialog.show()
+    else:
+        _settings_dialog.show()
+        _settings_dialog.raise_()
+        _settings_dialog.activateWindow()
 
 if __name__ =="__main__":
     app =QApplication (sys .argv )
