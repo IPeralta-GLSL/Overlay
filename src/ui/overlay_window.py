@@ -1,10 +1,12 @@
 from PySide6 .QtWidgets import QWidget ,QVBoxLayout ,QLabel 
-from PySide6 .QtCore import Qt ,QTimer 
+from PySide6 .QtCore import Qt ,QTimer ,Signal
 from PySide6 .QtGui import QColor ,QPalette ,QFont ,QGuiApplication ,QPainter ,QBrush 
 from src .core .system_monitor import SystemMonitor 
 from src .utils .translations import TRANSLATIONS 
 
 class OverlayWindow (QWidget ):
+    positionChanged = Signal(int, int)
+
     def __init__ (self ,config_manager ):
         super ().__init__ ()
         self .config_manager =config_manager 
@@ -180,8 +182,8 @@ class OverlayWindow (QWidget ):
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
             preset = self.config.get("position_preset", "custom")
-            print(f"Mouse press detected. Preset: {preset}")
-            if preset == "custom":
+            locked = self.config.get("position_locked", False)
+            if preset == "custom" and not locked:
                 self.dragging = True
                 self.drag_position = event.position().toPoint()
                 event.accept()
@@ -189,15 +191,17 @@ class OverlayWindow (QWidget ):
     def mouseMoveEvent(self, event):
         if hasattr(self, 'dragging') and self.dragging:
             if event.buttons() & Qt.LeftButton:
-                self.move(event.globalPosition().toPoint() - self.drag_position)
+                new_pos = event.globalPosition().toPoint() - self.drag_position
+                self.move(new_pos)
+                self.positionChanged.emit(new_pos.x(), new_pos.y())
                 event.accept()
 
     def mouseReleaseEvent(self, event):
         if hasattr(self, 'dragging') and self.dragging:
             self.dragging = False
             new_pos = self.pos()
-            print(f"New position saved: {new_pos.x()}, {new_pos.y()}")
             self.config_manager.set("position_x", new_pos.x())
             self.config_manager.set("position_y", new_pos.y())
             self.config_manager.save_config()
+            self.positionChanged.emit(new_pos.x(), new_pos.y())
             event.accept()

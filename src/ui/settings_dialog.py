@@ -7,10 +7,11 @@ from src .utils .translations import TRANSLATIONS
 from src .core .system_monitor import SystemMonitor 
 
 class SettingsDialog (QDialog ):
-    def __init__ (self ,config_manager ,on_apply_callback =None ,parent =None ):
+    def __init__ (self ,config_manager ,on_apply_callback =None ,parent =None, overlay_window=None ):
         super ().__init__ (parent )
         self .config_manager =config_manager 
         self .on_apply_callback =on_apply_callback 
+        self .overlay_window = overlay_window
         self .current_lang =self .config_manager .get ("language","es")
         self .initialized =False 
         self .apply_stylesheet ()
@@ -18,6 +19,8 @@ class SettingsDialog (QDialog ):
         self .retranslate_ui ()
         self .initialized =True 
 
+        if self.overlay_window:
+            self.overlay_window.positionChanged.connect(self.update_position_display)
 
         self .on_preset_change (self .preset_combo .currentIndex ())
 
@@ -232,6 +235,10 @@ class SettingsDialog (QDialog ):
         self .preset_combo .currentIndexChanged .connect (self .on_preset_change )
         position_layout .addRow (self .preset_label ,self .preset_combo )
 
+        self.lock_pos_check = QCheckBox("Lock Position")
+        self.lock_pos_check.setChecked(self.config_manager.get("position_locked", False))
+        self.lock_pos_check.toggled.connect(lambda: self.save_settings())
+        position_layout.addRow("", self.lock_pos_check)
 
         self .custom_pos_layout =QHBoxLayout ()
 
@@ -363,6 +370,7 @@ class SettingsDialog (QDialog ):
         self .preset_combo .setItemText (4 ,trans ["preset_bottom_left"])
         self .preset_combo .setItemText (5 ,trans ["preset_bottom_center"])
         self .preset_combo .setItemText (6 ,trans ["preset_bottom_right"])
+        self.lock_pos_check.setText(trans.get("lock_position", "Lock Position"))
         self .pos_label .setText (trans ["position_label"])
         self .pos_x_label .setText (trans ["axis_x"])
         self .pos_y_label .setText (trans ["axis_y"])
@@ -391,6 +399,14 @@ class SettingsDialog (QDialog ):
         self .pos_y_spin .setEnabled (is_custom )
         self .save_settings ()
 
+    def update_position_display(self, x, y):
+        self.pos_x_spin.blockSignals(True)
+        self.pos_y_spin.blockSignals(True)
+        self.pos_x_spin.setValue(x)
+        self.pos_y_spin.setValue(y)
+        self.pos_x_spin.blockSignals(False)
+        self.pos_y_spin.blockSignals(False)
+
     def pick_color (self ,target ):
         color =QColorDialog .getColor ()
         if color .isValid ():
@@ -414,6 +430,7 @@ class SettingsDialog (QDialog ):
 
         self .config_manager .set ("language",self .lang_combo .currentText ())
         self .config_manager .set ("position_preset",self .preset_combo .currentData ())
+        self .config_manager .set ("position_locked", self.lock_pos_check.isChecked())
         self .config_manager .set ("font_family",self .font_family_combo .currentText ())
         self .config_manager .set ("font_size",self .font_size_spin .value ())
         self .config_manager .set ("position_x",self .pos_x_spin .value ())

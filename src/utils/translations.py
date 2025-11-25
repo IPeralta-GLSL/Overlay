@@ -41,7 +41,8 @@ TRANSLATIONS ={
 "tab_general":"General",
 "tab_appearance":"Appearance",
 "tab_position":"Position",
-"tab_content":"Content"
+"tab_content":"Content",
+"lock_position": "Lock Position"
 },
 "es":{
 "time":"Hora",
@@ -85,6 +86,7 @@ TRANSLATIONS ={
 "tab_general":"General",
 "tab_appearance":"Apariencia",
 "tab_position":"Posición",
-"tab_content":"Contenido"
+"tab_content":"Contenido",
+"lock_position": "Bloquear Posición"
 }
 }

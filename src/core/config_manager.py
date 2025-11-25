@@ -18,6 +18,7 @@ class ConfigManager :
         "position_x":10 ,
         "position_y":10 ,
         "position_preset":"top-left",
+        "position_locked":False,
         "language":"es",
         "show_time":True ,
         "show_cpu":True ,

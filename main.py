@@ -64,7 +64,7 @@ def _reset_settings_dialog():
 def open_settings(window, config_manager):
     global _settings_dialog
     if _settings_dialog is None:
-        _settings_dialog = SettingsDialog(config_manager, on_apply_callback=window.reload_settings)
+        _settings_dialog = SettingsDialog(config_manager, on_apply_callback=window.reload_settings, overlay_window=window)
         _settings_dialog.finished.connect(_reset_settings_dialog)
         _settings_dialog.show()
     else:
