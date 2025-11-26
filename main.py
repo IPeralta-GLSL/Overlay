@@ -31,8 +31,9 @@ def create_tray_icon (app ,window ,config_manager ):
 
     pixmap =QPixmap (16 ,16 )
     pixmap .fill (QColor ("green"))
-    icon =QIcon (pixmap )
+    icon = QIcon("overlay.svg")
     tray_icon .setIcon (icon )
+    app.setWindowIcon(icon)
 
     lang =config_manager .get ("language","es")
     trans =TRANSLATIONS .get (lang ,TRANSLATIONS ["en"])
