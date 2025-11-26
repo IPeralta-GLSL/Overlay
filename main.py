@@ -3,6 +3,7 @@ import shutil
 import types 
 import setuptools 
 import json 
+import os
 
 try :
     from distutils import spawn 
@@ -28,10 +29,13 @@ from src .utils .translations import TRANSLATIONS
 def create_tray_icon (app ,window ,config_manager ):
     tray_icon =QSystemTrayIcon (app )
 
+    if getattr(sys, 'frozen', False):
+        base_path = os.path.dirname(sys.executable)
+    else:
+        base_path = os.path.dirname(os.path.abspath(__file__))
 
-    pixmap =QPixmap (16 ,16 )
-    pixmap .fill (QColor ("green"))
-    icon = QIcon("overlay.svg")
+    icon_path = os.path.join(base_path, "overlay.svg")
+    icon = QIcon(icon_path)
     tray_icon .setIcon (icon )
     app.setWindowIcon(icon)
 
