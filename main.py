@@ -30,9 +30,7 @@ def create_tray_icon (app ,window ,config_manager ):
     tray_icon =QSystemTrayIcon (app )
 
     if getattr(sys, 'frozen', False):
-        base_path = os.path.dirname(sys.executable)
-        if os.path.exists(os.path.join(base_path, "_internal")):
-            base_path = os.path.join(base_path, "_internal")
+        base_path = getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
     else:
         base_path = os.path.dirname(os.path.abspath(__file__))
 
