@@ -31,6 +31,8 @@ def create_tray_icon (app ,window ,config_manager ):
 
     if getattr(sys, 'frozen', False):
         base_path = os.path.dirname(sys.executable)
+        if os.path.exists(os.path.join(base_path, "_internal")):
+            base_path = os.path.join(base_path, "_internal")
     else:
         base_path = os.path.dirname(os.path.abspath(__file__))
 
