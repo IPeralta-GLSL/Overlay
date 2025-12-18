@@ -60,7 +60,12 @@ TRANSLATIONS = {
         "later": "Later",
         "no_updates": "No Updates",
         "up_to_date": "You are using the latest version.",
-        "check_now": "Check Now"
+        "check_now": "Check Now",
+        "dynamic_colors": "Dynamic Colors by Usage",
+        "color_only_value": "Color Only Value (not label)",
+        "color_low": "Low Usage Color (0-50%)%",
+        "color_medium": "Medium Usage Color (50-80%)",
+        "color_high": "High Usage Color (80-100%)"
     },
     "es": {
         "time": "Hora",
@@ -123,6 +128,11 @@ TRANSLATIONS = {
         "later": "Más Tarde",
         "no_updates": "Sin Actualizaciones",
         "up_to_date": "Estás usando la última versión.",
-        "check_now": "Buscar Ahora"
+        "check_now": "Buscar Ahora",
+        "dynamic_colors": "Colores Dinámicos por Uso",
+        "color_only_value": "Colorear Solo el Valor (no la etiqueta)",
+        "color_low": "Color Uso Bajo (0-50%)",
+        "color_medium": "Color Uso Medio (50-80%)",
+        "color_high": "Color Uso Alto (80-100%)"
     }
 }

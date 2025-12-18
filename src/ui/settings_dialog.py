@@ -211,6 +211,35 @@ class SettingsDialog(QDialog):
         self.opacity_slider.setValue(int(self.config_manager.get("background_opacity", 0.5) * 100))
         appearance_layout.addRow(self.opacity_label, self.opacity_slider)
 
+        self.dynamic_colors_check = QCheckBox()
+        self.dynamic_colors_check.setChecked(self.config_manager.get("dynamic_colors", False))
+        appearance_layout.addRow("", self.dynamic_colors_check)
+
+        self.color_only_value_check = QCheckBox()
+        self.color_only_value_check.setChecked(self.config_manager.get("color_only_value", False))
+        appearance_layout.addRow("", self.color_only_value_check)
+
+        self.color_low_label = QLabel()
+        self.color_low_btn = QPushButton()
+        self.color_low = self.config_manager.get("color_low", "#4CAF50")
+        self.color_low_btn.setStyleSheet(f"background-color: {self.color_low}")
+        self.color_low_btn.clicked.connect(lambda: self.pick_color("low"))
+        appearance_layout.addRow(self.color_low_label, self.color_low_btn)
+
+        self.color_medium_label = QLabel()
+        self.color_medium_btn = QPushButton()
+        self.color_medium = self.config_manager.get("color_medium", "#FFC107")
+        self.color_medium_btn.setStyleSheet(f"background-color: {self.color_medium}")
+        self.color_medium_btn.clicked.connect(lambda: self.pick_color("medium"))
+        appearance_layout.addRow(self.color_medium_label, self.color_medium_btn)
+
+        self.color_high_label = QLabel()
+        self.color_high_btn = QPushButton()
+        self.color_high = self.config_manager.get("color_high", "#F44336")
+        self.color_high_btn.setStyleSheet(f"background-color: {self.color_high}")
+        self.color_high_btn.clicked.connect(lambda: self.pick_color("high"))
+        appearance_layout.addRow(self.color_high_label, self.color_high_btn)
+
         self.group_appearance.setLayout(appearance_layout)
         scroll_layout.addWidget(self.group_appearance)
 
@@ -391,6 +420,8 @@ class SettingsDialog(QDialog):
         self.pos_x_spin.valueChanged.connect(lambda: self.save_settings())
         self.pos_y_spin.valueChanged.connect(lambda: self.save_settings())
         self.opacity_slider.valueChanged.connect(lambda: self.save_settings())
+        self.dynamic_colors_check.toggled.connect(lambda: self.save_settings())
+        self.color_only_value_check.toggled.connect(lambda: self.save_settings())
         self.show_time_check.toggled.connect(lambda: self.save_settings())
         self.show_cpu_check.toggled.connect(lambda: self.save_settings())
         self.show_ram_check.toggled.connect(lambda: self.save_settings())
@@ -438,6 +469,14 @@ class SettingsDialog(QDialog):
         self.bg_color_label.setText(trans["bg_color"])
         self.bg_color_btn.setText(trans["pick_color"])
         self.opacity_label.setText(trans["opacity"])
+        self.dynamic_colors_check.setText(trans.get("dynamic_colors", "Dynamic Colors by Usage"))
+        self.color_only_value_check.setText(trans.get("color_only_value", "Color Only Value (not label)"))
+        self.color_low_label.setText(trans.get("color_low", "Low Usage Color (0-50%)"))
+        self.color_low_btn.setText(trans["pick_color"])
+        self.color_medium_label.setText(trans.get("color_medium", "Medium Usage Color (50-80%)"))
+        self.color_medium_btn.setText(trans["pick_color"])
+        self.color_high_label.setText(trans.get("color_high", "High Usage Color (80-100%)"))
+        self.color_high_btn.setText(trans["pick_color"])
         self.show_time_check.setText(trans["show_time"])
         self.show_cpu_check.setText(trans["show_cpu"])
         self.show_ram_check.setText(trans["show_ram"])
@@ -483,9 +522,18 @@ class SettingsDialog(QDialog):
             if target == "text":
                 self.text_color = hex_color
                 self.text_color_btn.setStyleSheet(f"background-color: {hex_color}")
-            else:
+            elif target == "bg":
                 self.bg_color = hex_color
                 self.bg_color_btn.setStyleSheet(f"background-color: {hex_color}")
+            elif target == "low":
+                self.color_low = hex_color
+                self.color_low_btn.setStyleSheet(f"background-color: {hex_color}")
+            elif target == "medium":
+                self.color_medium = hex_color
+                self.color_medium_btn.setStyleSheet(f"background-color: {hex_color}")
+            elif target == "high":
+                self.color_high = hex_color
+                self.color_high_btn.setStyleSheet(f"background-color: {hex_color}")
             self.save_settings()
 
     def on_language_change(self, text):
@@ -536,6 +584,11 @@ class SettingsDialog(QDialog):
         self.config_manager.set("text_color", self.text_color)
         self.config_manager.set("background_color", self.bg_color)
         self.config_manager.set("background_opacity", self.opacity_slider.value() / 100.0)
+        self.config_manager.set("dynamic_colors", self.dynamic_colors_check.isChecked())
+        self.config_manager.set("color_only_value", self.color_only_value_check.isChecked())
+        self.config_manager.set("color_low", self.color_low)
+        self.config_manager.set("color_medium", self.color_medium)
+        self.config_manager.set("color_high", self.color_high)
         self.config_manager.set("show_time", self.show_time_check.isChecked())
         self.config_manager.set("show_cpu", self.show_cpu_check.isChecked())
         self.config_manager.set("show_ram", self.show_ram_check.isChecked())
