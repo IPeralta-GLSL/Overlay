@@ -1,33 +1,36 @@
-import sys 
-import shutil 
-import types 
-import setuptools 
-import json 
+import sys
+import shutil
+import types
+import setuptools
+import json
 import os
 
-try :
-    from distutils import spawn 
-except ImportError :
-    distutils =types .ModuleType ("distutils")
-    spawn =types .ModuleType ("distutils.spawn")
+try:
+    from distutils import spawn
+except ImportError:
+    distutils = types.ModuleType("distutils")
+    spawn = types.ModuleType("distutils.spawn")
 
-    def find_executable (executable ,path =None ):
-        return shutil .which (executable ,path =path )
+    def find_executable(executable, path=None):
+        return shutil.which(executable, path=path)
 
-    spawn .find_executable =find_executable 
-    distutils .spawn =spawn 
-    sys .modules ["distutils"]=distutils 
-    sys .modules ["distutils.spawn"]=spawn 
+    spawn.find_executable = find_executable
+    distutils.spawn = spawn
+    sys.modules["distutils"] = distutils
+    sys.modules["distutils.spawn"] = spawn
 
-from PySide6 .QtWidgets import QApplication ,QSystemTrayIcon ,QMenu 
-from PySide6 .QtGui import QIcon ,QAction ,QPixmap ,QColor 
-from src .ui .overlay_window import OverlayWindow 
-from src .ui .settings_dialog import SettingsDialog 
-from src .core .config_manager import ConfigManager 
-from src .utils .translations import TRANSLATIONS 
+from PySide6.QtWidgets import QApplication, QSystemTrayIcon, QMenu
+from PySide6.QtGui import QIcon, QAction
+from src.ui.overlay_window import OverlayWindow
+from src.ui.settings_dialog import SettingsDialog
+from src.core.config_manager import ConfigManager
+from src.core.hotkey_manager import HotkeyManager
+from src.core.update_checker import UpdateChecker
+from src.core.config_manager import APP_VERSION
+from src.utils.translations import TRANSLATIONS
 
-def create_tray_icon (app ,window ,config_manager ):
-    tray_icon =QSystemTrayIcon (app )
+def create_tray_icon(app, window, config_manager, hotkey_manager):
+    tray_icon = QSystemTrayIcon(app)
 
     if getattr(sys, 'frozen', False):
         base_path = getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
@@ -36,29 +39,28 @@ def create_tray_icon (app ,window ,config_manager ):
 
     icon_path = os.path.join(base_path, "overlay.svg")
     icon = QIcon(icon_path)
-    tray_icon .setIcon (icon )
+    tray_icon.setIcon(icon)
     app.setWindowIcon(icon)
 
-    lang =config_manager .get ("language","es")
-    trans =TRANSLATIONS .get (lang ,TRANSLATIONS ["en"])
+    lang = config_manager.get("language", "es")
+    trans = TRANSLATIONS.get(lang, TRANSLATIONS["en"])
 
-    menu =QMenu ()
+    menu = QMenu()
 
-    settings_action =QAction (trans ["settings"],app )
-    settings_action .triggered .connect (lambda :open_settings (window ,config_manager ))
-    menu .addAction (settings_action )
+    settings_action = QAction(trans["settings"], app)
+    settings_action.triggered.connect(lambda: open_settings(window, config_manager, hotkey_manager))
+    menu.addAction(settings_action)
 
-    exit_action =QAction (trans ["exit"],app )
-    exit_action .triggered .connect (app .quit )
-    menu .addAction (exit_action )
+    exit_action = QAction(trans["exit"], app)
+    exit_action.triggered.connect(app.quit)
+    menu.addAction(exit_action)
 
-    tray_icon .setContextMenu (menu )
+    tray_icon.setContextMenu(menu)
 
+    tray_icon.activated.connect(lambda reason: open_settings(window, config_manager, hotkey_manager) if reason == QSystemTrayIcon.Trigger else None)
 
-    tray_icon .activated .connect (lambda reason :open_settings (window ,config_manager )if reason ==QSystemTrayIcon .Trigger else None )
-
-    tray_icon .show ()
-    return tray_icon 
+    tray_icon.show()
+    return tray_icon
 
 _settings_dialog = None
 
@@ -66,10 +68,15 @@ def _reset_settings_dialog():
     global _settings_dialog
     _settings_dialog = None
 
-def open_settings(window, config_manager):
+def open_settings(window, config_manager, hotkey_manager):
     global _settings_dialog
     if _settings_dialog is None:
-        _settings_dialog = SettingsDialog(config_manager, on_apply_callback=window.reload_settings, overlay_window=window)
+        _settings_dialog = SettingsDialog(
+            config_manager,
+            on_apply_callback=window.reload_settings,
+            overlay_window=window,
+            hotkey_manager=hotkey_manager
+        )
         _settings_dialog.finished.connect(_reset_settings_dialog)
         _settings_dialog.show()
     else:
@@ -77,17 +84,27 @@ def open_settings(window, config_manager):
         _settings_dialog.raise_()
         _settings_dialog.activateWindow()
 
-if __name__ =="__main__":
-    app =QApplication (sys .argv )
-    app .setQuitOnLastWindowClosed (False )
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    app.setQuitOnLastWindowClosed(False)
 
-    config_manager =ConfigManager ()
-    window =OverlayWindow (config_manager )
-    window .show ()
+    config_manager = ConfigManager()
+    window = OverlayWindow(config_manager)
+    
+    hotkey_manager = HotkeyManager()
+    hotkey_manager.toggle_overlay.connect(window.toggle_visibility)
+    
+    if config_manager.get("hotkey_enabled", True):
+        hotkey_manager.register_hotkey(config_manager.get("hotkey_toggle", "ctrl+shift+o"))
+    
+    window.show()
 
-    tray_icon =create_tray_icon (app ,window ,config_manager )
+    tray_icon = create_tray_icon(app, window, config_manager, hotkey_manager)
 
+    if config_manager.get("check_updates", True):
+        update_checker = UpdateChecker("IPeralta-GLSL", "Overlay", APP_VERSION)
+        update_checker.check_for_updates()
 
-    open_settings (window ,config_manager )
+    open_settings(window, config_manager, hotkey_manager)
 
-    sys .exit (app .exec ())
+    sys.exit(app.exec())

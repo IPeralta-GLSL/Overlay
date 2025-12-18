@@ -1,183 +1,210 @@
-from PySide6 .QtWidgets import QWidget ,QVBoxLayout ,QLabel 
-from PySide6 .QtCore import Qt ,QTimer ,Signal
-from PySide6 .QtGui import QColor ,QPalette ,QFont ,QGuiApplication ,QPainter ,QBrush 
-from src .core .system_monitor import SystemMonitor 
-from src .utils .translations import TRANSLATIONS 
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
+from PySide6.QtCore import Qt, QTimer, Signal
+from PySide6.QtGui import QColor, QFont, QGuiApplication, QPainter, QBrush
+from src.core.system_monitor import SystemMonitor
+from src.utils.translations import TRANSLATIONS
 
-class OverlayWindow (QWidget ):
+class OverlayWindow(QWidget):
     positionChanged = Signal(int, int)
 
-    def __init__ (self ,config_manager ):
-        super ().__init__ ()
-        self .config_manager =config_manager 
-        self .monitor =SystemMonitor ()
-        self .load_config ()
-        self .init_ui ()
-        self .start_timer ()
+    def __init__(self, config_manager):
+        super().__init__()
+        self.config_manager = config_manager
+        self.monitor = SystemMonitor()
+        self.load_config()
+        self.init_ui()
+        self.start_timer()
 
-    def load_config (self ):
-        self .config =self .config_manager .config 
-        self .lang =self .config .get ("language","es")
-        self .trans =TRANSLATIONS .get (self .lang ,TRANSLATIONS ["en"])
+    def load_config(self):
+        self.config = self.config_manager.config
+        self.lang = self.config.get("language", "es")
+        self.trans = TRANSLATIONS.get(self.lang, TRANSLATIONS["en"])
 
-    def init_ui (self ):
-        self .setWindowFlags (Qt .FramelessWindowHint |Qt .WindowStaysOnTopHint |Qt .Tool )
-        self .setAttribute (Qt .WA_TranslucentBackground )
+    def init_ui(self):
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
+        self.setAttribute(Qt.WA_TranslucentBackground)
 
-        if self .layout ():
-            QWidget ().setLayout (self .layout ())
+        if self.layout():
+            QWidget().setLayout(self.layout())
 
-        layout =QVBoxLayout ()
-        self .setLayout (layout )
+        layout = QVBoxLayout()
+        self.setLayout(layout)
 
-        self .time_label =QLabel ()
-        self .cpu_label =QLabel ()
-        self .ram_label =QLabel ()
-        self .gpu_label =QLabel ()
+        self.time_label = QLabel()
+        self.cpu_label = QLabel()
+        self.cpu_temp_label = QLabel()
+        self.ram_label = QLabel()
+        self.gpu_label = QLabel()
+        self.gpu_temp_label = QLabel()
 
-        self .apply_styles ()
+        for label in [self.time_label, self.cpu_label, self.cpu_temp_label,
+                      self.ram_label, self.gpu_label, self.gpu_temp_label]:
+            layout.addWidget(label)
 
-        for label in [self .time_label ,self .cpu_label ,self .ram_label ,self .gpu_label ]:
-            layout .addWidget (label )
+        self.apply_styles()
+        self.update_stats()
+        self.adjustSize()
+        QTimer.singleShot(100, self.update_position)
 
-        self .update_position ()
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        bg_color = QColor(self.config.get("background_color", "#000000"))
+        bg_color.setAlphaF(self.config.get("background_opacity", 0.5))
+        painter.setBrush(QBrush(bg_color))
+        painter.setPen(Qt.NoPen)
+        painter.drawRoundedRect(self.rect(), 15, 15)
 
-    def paintEvent (self ,event ):
-        painter =QPainter (self )
-        painter .setRenderHint (QPainter .Antialiasing )
-        bg_color =QColor (self .config .get ("background_color","#000000"))
-        bg_color .setAlphaF (self .config .get ("background_opacity",0.5 ))
-        painter .setBrush (QBrush (bg_color ))
-        painter .setPen (Qt .NoPen )
-        painter .drawRoundedRect (self .rect (),15 ,15 )
+    def apply_styles(self):
+        font = QFont(self.config.get("font_family", "Arial"), self.config.get("font_size", 14))
+        color = self.config.get("text_color", "#FFFFFF")
+        style = f"color: {color};"
 
-    def apply_styles (self ):
-        font =QFont (self .config .get ("font_family","Arial"),self .config .get ("font_size",14 ))
-        color =self .config .get ("text_color","#FFFFFF")
-        style =f"color: {color };"
+        self.time_label.setVisible(self.config.get("show_time", True))
+        self.cpu_label.setVisible(self.config.get("show_cpu", True))
+        self.cpu_temp_label.setVisible(self.config.get("show_cpu_temp", False))
+        self.ram_label.setVisible(self.config.get("show_ram", True))
+        self.gpu_temp_label.setVisible(self.config.get("show_gpu_temp", False))
 
-        self .time_label .setVisible (self .config .get ("show_time",True ))
-        self .cpu_label .setVisible (self .config .get ("show_cpu",True ))
-        self .ram_label .setVisible (self .config .get ("show_ram",True ))
+        for label in [self.time_label, self.cpu_label, self.cpu_temp_label,
+                      self.ram_label, self.gpu_label, self.gpu_temp_label]:
+            label.setFont(font)
+            label.setStyleSheet(style)
 
+        self.update()
+        self.adjustSize()
+        self.update_position()
 
-        for label in [self .time_label ,self .cpu_label ,self .ram_label ,self .gpu_label ]:
-            label .setFont (font )
-            label .setStyleSheet (style )
+    def update_position(self):
+        preset = self.config.get("position_preset", "custom")
+        screen = QGuiApplication.primaryScreen().availableGeometry()
 
-        self .update ()
+        x, y = 10, 10
+        margin = 10
 
-        self .adjustSize ()
-        self .update_position ()
+        if preset == "top-left":
+            x, y = margin, margin
+        elif preset == "top-center":
+            x = (screen.width() - self.width()) // 2
+            y = margin
+        elif preset == "top-right":
+            x = screen.width() - self.width() - margin
+            y = margin
+        elif preset == "bottom-left":
+            x = margin
+            y = screen.height() - self.height() - margin
+        elif preset == "bottom-center":
+            x = (screen.width() - self.width()) // 2
+            y = screen.height() - self.height() - margin
+        elif preset == "bottom-right":
+            x = screen.width() - self.width() - margin
+            y = screen.height() - self.height() - margin
+        else:
+            x = self.config.get("position_x", 10)
+            y = self.config.get("position_y", 10)
 
-    def update_position (self ):
-        preset =self .config .get ("position_preset","custom")
-        screen =QGuiApplication .primaryScreen ().availableGeometry ()
+        self.move(x, y)
 
-        x ,y =10 ,10 
-        margin =10 
+    def reload_settings(self):
+        self.load_config()
+        self.apply_styles()
+        new_interval = self.config.get("update_interval_ms", 1000)
+        if self.timer.interval() != new_interval:
+            self.timer.setInterval(new_interval)
 
-        if preset =="top-left":
-            x ,y =margin ,margin 
-        elif preset =="top-center":
-            x =(screen .width ()-self .width ())//2 
-            y =margin 
-        elif preset =="top-right":
-            x =screen .width ()-self .width ()-margin 
-            y =margin 
-        elif preset =="bottom-left":
-            x =margin 
-            y =screen .height ()-self .height ()-margin 
-        elif preset =="bottom-center":
-            x =(screen .width ()-self .width ())//2 
-            y =screen .height ()-self .height ()-margin 
-        elif preset =="bottom-right":
-            x =screen .width ()-self .width ()-margin 
-            y =screen .height ()-self .height ()-margin 
-        else :
-            x =self .config .get ("position_x",10 )
-            y =self .config .get ("position_y",10 )
+    def start_timer(self):
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_stats)
+        self.timer.start(self.config.get("update_interval_ms", 1000))
 
-        self .move (x ,y )
+    def _clean_manufacturer(self, name, show_manufacturer):
+        if show_manufacturer:
+            return name
 
-    def reload_settings (self ):
-        self .load_config ()
-        self .apply_styles ()
+        manufacturers = ["Intel(R)", "Intel", "AMD", "NVIDIA", "Nvidia", "GeForce", "Radeon"]
+        cleaned_name = name
+        for m in manufacturers:
+            if cleaned_name.lower().startswith(m.lower()):
+                cleaned_name = cleaned_name[len(m):].strip()
 
-    def start_timer (self ):
-        self .timer =QTimer (self )
-        self .timer .timeout .connect (self .update_stats )
-        self .timer .start (self .config .get ("update_interval_ms",1000 ))
+        for m in manufacturers:
+            if cleaned_name.lower().startswith(m.lower()):
+                cleaned_name = cleaned_name[len(m):].strip()
 
-    def _clean_manufacturer (self ,name ,show_manufacturer ):
-        if show_manufacturer :
-            return name 
+        artifacts = ["(R)", "(TM)", "Core(TM)"]
+        for a in artifacts:
+            if cleaned_name.lower().startswith(a.lower()):
+                cleaned_name = cleaned_name[len(a):].strip()
 
+        return cleaned_name if cleaned_name else name
 
-        manufacturers =["Intel(R)","Intel","AMD","NVIDIA","Nvidia","GeForce","Radeon"]
-        cleaned_name =name 
-        for m in manufacturers :
-            if cleaned_name .lower ().startswith (m .lower ()):
+    def update_stats(self):
+        self.time_label.setText(f"{self.trans['time']}: {self.monitor.get_current_time()}")
 
-                cleaned_name =cleaned_name [len (m ):].strip ()
+        show_cpu_name = self.config.get("show_cpu_name", False)
+        show_cpu_manufacturer = self.config.get("show_cpu_manufacturer", True)
 
+        if show_cpu_name:
+            cpu_name = self.monitor.cpu_name
+            cpu_label_text = self._clean_manufacturer(cpu_name, show_cpu_manufacturer)
+        else:
+            cpu_label_text = self.trans['cpu']
 
+        self.cpu_label.setText(f"{cpu_label_text}: {self.monitor.get_cpu_usage()}%")
 
-                pass 
+        if self.config.get("show_cpu_temp", False):
+            cpu_temp = self.monitor.get_cpu_temperature()
+            if cpu_temp is not None:
+                self.cpu_temp_label.setText(f"{self.trans.get('cpu_temp', 'CPU Temp')}: {cpu_temp:.1f}°C")
+                self.cpu_temp_label.setVisible(True)
+            else:
+                self.cpu_temp_label.setVisible(False)
+        else:
+            self.cpu_temp_label.setVisible(False)
 
+        self.ram_label.setText(f"{self.trans['ram']}: {self.monitor.get_ram_usage()}%")
 
-        for m in manufacturers :
-            if cleaned_name .lower ().startswith (m .lower ()):
-                 cleaned_name =cleaned_name [len (m ):].strip ()
+        if not self.config.get("show_gpu", True):
+            self.gpu_label.setVisible(False)
+            self.gpu_temp_label.setVisible(False)
+            self.adjustSize()
+            return
 
+        gpu_info = self.monitor.get_gpu_info()
+        gpu_visibility = self.config.get("gpu_visibility", {})
+        show_gpu_name = self.config.get("show_gpu_name", False)
+        show_gpu_manufacturer = self.config.get("show_gpu_manufacturer", False)
 
-        artifacts =["(R)","(TM)","Core(TM)"]
-        for a in artifacts :
-             if cleaned_name .lower ().startswith (a .lower ()):
-                 cleaned_name =cleaned_name [len (a ):].strip ()
+        visible_gpus = []
+        if gpu_info:
+            for i, (name, usage) in enumerate(gpu_info):
+                if gpu_visibility.get(name, True):
+                    if show_gpu_name:
+                        display_name = self._clean_manufacturer(name, show_gpu_manufacturer)
+                    else:
+                        display_name = f"GPU {i + 1}" if len(gpu_info) > 1 else "GPU"
+                    visible_gpus.append(f"{display_name}: {usage:.1f}%")
 
-        return cleaned_name if cleaned_name else name 
+            if visible_gpus:
+                self.gpu_label.setText("\n".join(visible_gpus))
+                self.gpu_label.setVisible(True)
+            else:
+                self.gpu_label.setVisible(False)
+        else:
+            self.gpu_label.setVisible(False)
 
-    def update_stats (self ):
-        self .time_label .setText (f"{self .trans ['time']}: {self .monitor .get_current_time ()}")
+        if self.config.get("show_gpu_temp", False):
+            gpu_temps = self.monitor.get_gpu_temperature()
+            if gpu_temps:
+                temp_texts = [f"{self.trans.get('gpu_temp', 'GPU Temp')}: {t:.1f}°C" for t in gpu_temps]
+                self.gpu_temp_label.setText("\n".join(temp_texts))
+                self.gpu_temp_label.setVisible(True)
+            else:
+                self.gpu_temp_label.setVisible(False)
+        else:
+            self.gpu_temp_label.setVisible(False)
 
-        show_cpu_name =self .config .get ("show_cpu_name",False )
-        show_cpu_manufacturer =self .config .get ("show_cpu_manufacturer",True )
-
-        if show_cpu_name :
-            cpu_name =self .monitor .cpu_name 
-            cpu_label_text =self ._clean_manufacturer (cpu_name ,show_cpu_manufacturer )
-        else :
-            cpu_label_text =self .trans ['cpu']
-
-        self .cpu_label .setText (f"{cpu_label_text }: {self .monitor .get_cpu_usage ()}%")
-
-        self .ram_label .setText (f"{self .trans ['ram']}: {self .monitor .get_ram_usage ()}%")
-
-        gpu_info =self .monitor .get_gpu_info ()
-        gpu_visibility =self .config .get ("gpu_visibility",{})
-        show_gpu_name =self .config .get ("show_gpu_name",True )
-        show_gpu_manufacturer =self .config .get ("show_gpu_manufacturer",True )
-
-        visible_gpus =[]
-        if gpu_info :
-            for i ,(name ,usage )in enumerate (gpu_info ):
-                if gpu_visibility .get (name ,True ):
-                    if show_gpu_name :
-                        display_name =self ._clean_manufacturer (name ,show_gpu_manufacturer )
-                    else :
-                        display_name =f"GPU {i +1 }"if len (gpu_info )>1 else "GPU"
-                    visible_gpus .append (f"{display_name }: {usage :.1f}%")
-
-            if visible_gpus :
-                self .gpu_label .setText ("\n".join (visible_gpus ))
-                self .gpu_label .setVisible (True )
-            else :
-                self .gpu_label .setVisible (False )
-        else :
-            self .gpu_label .setVisible (False )
-
-        self .adjustSize ()
+        self.adjustSize()
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -205,3 +232,9 @@ class OverlayWindow (QWidget ):
             self.config_manager.save_config()
             self.positionChanged.emit(new_pos.x(), new_pos.y())
             event.accept()
+
+    def toggle_visibility(self):
+        if self.isVisible():
+            self.hide()
+        else:
+            self.show()
