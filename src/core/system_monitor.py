@@ -233,16 +233,14 @@ class SystemMonitor:
                     **kwargs
                 ).decode("utf-8")
                 for line in output.split('\n'):
-                    if "GPU use" in line or "%" in line:
-                        parts = line.split()
-                        for part in parts:
+                    if "GPU use (%)" in line:
+                        parts = line.split(":")
+                        if len(parts) >= 2:
                             try:
-                                usage = float(part.replace('%', ''))
-                                if 0 <= usage <= 100:
-                                    amd_usages.append(usage)
-                                    break
+                                usage = float(parts[-1].strip())
+                                amd_usages.append(usage)
                             except:
-                                continue
+                                pass
             except:
                 pass
 
