@@ -116,7 +116,7 @@ if __name__ == "__main__":
     window.openSettingsRequested.connect(lambda: open_settings(window, config_manager, hotkey_manager))
     
     hotkey_manager = HotkeyManager()
-    hotkey_manager.toggle_overlay.connect(window.toggle_visibility)
+    hotkey_manager.toggle_overlay.connect(window.toggle_stay_on_top)
     
     if config_manager.get("hotkey_enabled", True):
         hotkey_manager.register_hotkey(config_manager.get("hotkey_toggle", "ctrl+shift+o"))

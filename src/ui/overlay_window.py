@@ -341,3 +341,6 @@ class OverlayWindow(QWidget):
             flags &= ~Qt.WindowStaysOnTopHint
         self.setWindowFlags(flags)
         self.show()
+
+    def toggle_stay_on_top(self):
+        self._toggle_stay_on_top(not self._stay_on_top)
