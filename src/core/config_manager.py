@@ -2,7 +2,7 @@ import json
 import os
 from PySide6.QtCore import QStandardPaths
 
-APP_VERSION = "1.1.0"
+APP_VERSION = "1.0.0"
 
 class ConfigManager:
     def __init__(self):

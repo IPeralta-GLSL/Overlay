@@ -193,7 +193,7 @@ class OverlayWindow(QWidget):
 
         cpu_usage = self.monitor.get_cpu_usage()
         cpu_color = self._get_color_for_percentage(cpu_usage)
-        text, color = self._format_with_color(cpu_label_text, f"{cpu_usage}%", cpu_color)
+        text, color = self._format_with_color(cpu_label_text, f"{cpu_usage:.1f}%", cpu_color)
         self._apply_label_style(self.cpu_label, text, color)
 
         if self.config.get("show_cpu_temp", False):
@@ -211,7 +211,7 @@ class OverlayWindow(QWidget):
 
         ram_usage = self.monitor.get_ram_usage()
         ram_color = self._get_color_for_percentage(ram_usage)
-        text, color = self._format_with_color(self.trans['ram'], f"{ram_usage}%", ram_color)
+        text, color = self._format_with_color(self.trans['ram'], f"{ram_usage:.1f}%", ram_color)
         self._apply_label_style(self.ram_label, text, color)
 
         if not self.config.get("show_gpu", True):
