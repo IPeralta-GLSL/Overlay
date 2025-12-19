@@ -22,24 +22,41 @@ class SystemMonitor:
         if platform.system() != "Windows":
             return
         try:
-            import clr
             if getattr(sys, 'frozen', False):
                 base_path = getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
             else:
                 base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
             dll_path = os.path.join(base_path, "lib", "LibreHardwareMonitorLib.dll")
-            if os.path.exists(dll_path):
-                clr.AddReference(dll_path)
-                from LibreHardwareMonitor import Hardware
-                self._Hardware = Hardware
-                self._lhm_computer = Hardware.Computer()
-                self._lhm_computer.IsCpuEnabled = True
-                self._lhm_computer.IsGpuEnabled = True
-                self._lhm_computer.IsMemoryEnabled = True
-                self._lhm_computer.Open()
-                self._lhm_initialized = True
-        except:
+            if not os.path.exists(dll_path):
+                self._lhm_initialized = False
+                return
+            
+            from clr_loader import get_coreclr, get_netfx
+            from pythonnet import set_runtime
+            
+            try:
+                runtime = get_netfx()
+                set_runtime(runtime)
+            except Exception:
+                try:
+                    runtime = get_coreclr()
+                    set_runtime(runtime)
+                except Exception:
+                    pass
+            
+            import clr
+            clr.AddReference(dll_path)
+            from LibreHardwareMonitor import Hardware
+            self._Hardware = Hardware
+            self._lhm_computer = Hardware.Computer()
+            self._lhm_computer.IsCpuEnabled = True
+            self._lhm_computer.IsGpuEnabled = True
+            self._lhm_computer.IsMemoryEnabled = True
+            self._lhm_computer.Open()
+            self._lhm_initialized = True
+        except Exception as e:
             self._lhm_initialized = False
+            self._init_error = str(e)
 
     def _update_hardware(self):
         if self._lhm_computer:
