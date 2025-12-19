@@ -65,7 +65,9 @@ TRANSLATIONS = {
         "color_only_value": "Color Only Value (not label)",
         "color_low": "Low Usage Color (0-50%)%",
         "color_medium": "Medium Usage Color (50-80%)",
-        "color_high": "High Usage Color (80-100%)"
+        "color_high": "High Usage Color (80-100%)",
+        "stay_on_top": "Stay on Top",
+        "open_settings": "Settings"
     },
     "es": {
         "time": "Hora",
@@ -133,6 +135,8 @@ TRANSLATIONS = {
         "color_only_value": "Colorear Solo el Valor (no la etiqueta)",
         "color_low": "Color Uso Bajo (0-50%)",
         "color_medium": "Color Uso Medio (50-80%)",
-        "color_high": "Color Uso Alto (80-100%)"
+        "color_high": "Color Uso Alto (80-100%)",
+        "stay_on_top": "Superponer",
+        "open_settings": "Configuración"
     }
 }

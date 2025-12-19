@@ -113,6 +113,7 @@ if __name__ == "__main__":
 
     config_manager = ConfigManager()
     window = OverlayWindow(config_manager)
+    window.openSettingsRequested.connect(lambda: open_settings(window, config_manager, hotkey_manager))
     
     hotkey_manager = HotkeyManager()
     hotkey_manager.toggle_overlay.connect(window.toggle_visibility)

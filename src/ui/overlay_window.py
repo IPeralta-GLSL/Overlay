@@ -1,16 +1,18 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QMenu
 from PySide6.QtCore import Qt, QTimer, Signal
-from PySide6.QtGui import QColor, QFont, QGuiApplication, QPainter, QBrush
+from PySide6.QtGui import QColor, QFont, QGuiApplication, QPainter, QBrush, QAction
 from src.core.system_monitor import SystemMonitor
 from src.utils.translations import TRANSLATIONS
 
 class OverlayWindow(QWidget):
     positionChanged = Signal(int, int)
+    openSettingsRequested = Signal()
 
     def __init__(self, config_manager):
         super().__init__()
         self.config_manager = config_manager
         self.monitor = SystemMonitor()
+        self._stay_on_top = True
         self.load_config()
         self.init_ui()
         self.start_timer()
@@ -312,3 +314,30 @@ class OverlayWindow(QWidget):
             self.hide()
         else:
             self.show()
+
+    def contextMenuEvent(self, event):
+        menu = QMenu(self)
+        
+        stay_on_top_action = QAction(self.trans.get("stay_on_top", "Stay on Top"), self)
+        stay_on_top_action.setCheckable(True)
+        stay_on_top_action.setChecked(self._stay_on_top)
+        stay_on_top_action.triggered.connect(self._toggle_stay_on_top)
+        menu.addAction(stay_on_top_action)
+        
+        menu.addSeparator()
+        
+        settings_action = QAction(self.trans.get("open_settings", "Settings"), self)
+        settings_action.triggered.connect(self.openSettingsRequested.emit)
+        menu.addAction(settings_action)
+        
+        menu.exec(event.globalPos())
+
+    def _toggle_stay_on_top(self, checked):
+        self._stay_on_top = checked
+        flags = self.windowFlags()
+        if checked:
+            flags |= Qt.WindowStaysOnTopHint
+        else:
+            flags &= ~Qt.WindowStaysOnTopHint
+        self.setWindowFlags(flags)
+        self.show()
