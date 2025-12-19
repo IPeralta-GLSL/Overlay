@@ -11,6 +11,10 @@ class SystemMonitor:
         self._gpu_info_cache = None
         self._gpu_cache_time = 0
         self._gpu_cache_duration = 60
+        self._cpu_temp_available = None
+        self._cpu_temp_method = None
+        self._lhm_computer = None
+        self._lhm_initialized = False
 
     @property
     def cpu_name(self):
@@ -21,12 +25,11 @@ class SystemMonitor:
     def _get_cpu_name(self):
         try:
             if platform.system() == "Windows":
-                command = "wmic cpu get name"
-                output = subprocess.check_output(
-                    command, shell=True,
-                    creationflags=subprocess.CREATE_NO_WINDOW
-                ).decode().strip()
-                return output.split("\n")[1].strip()
+                import winreg
+                key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"HARDWARE\DESCRIPTION\System\CentralProcessor\0")
+                cpu_name, _ = winreg.QueryValueEx(key, "ProcessorNameString")
+                winreg.CloseKey(key)
+                return cpu_name.strip()
             elif platform.system() == "Linux":
                 with open("/proc/cpuinfo", "r") as f:
                     for line in f:
@@ -45,24 +48,57 @@ class SystemMonitor:
         return psutil.virtual_memory().percent
 
     def get_cpu_temperature(self):
+        if self._cpu_temp_available is False:
+            return None
         try:
             if platform.system() == "Linux":
                 temps = psutil.sensors_temperatures()
                 if temps:
                     for name in ["coretemp", "k10temp", "zenpower", "cpu_thermal", "acpitz"]:
                         if name in temps:
+                            self._cpu_temp_available = True
                             return temps[name][0].current
                     first_sensor = list(temps.values())[0]
                     if first_sensor:
+                        self._cpu_temp_available = True
                         return first_sensor[0].current
             elif platform.system() == "Windows":
-                try:
-                    import wmi
-                    w = wmi.WMI(namespace="root\\wmi")
-                    temp_info = w.MSAcpi_ThermalZoneTemperature()[0]
-                    return (temp_info.CurrentTemperature / 10.0) - 273.15
-                except:
-                    pass
+                if self._cpu_temp_method == "lhm" or self._cpu_temp_method is None:
+                    try:
+                        import clr
+                        import os
+                        import sys
+                        if not self._lhm_initialized:
+                            if getattr(sys, 'frozen', False):
+                                base_path = getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
+                            else:
+                                base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                            dll_path = os.path.join(base_path, "lib", "LibreHardwareMonitorLib.dll")
+                            if os.path.exists(dll_path):
+                                clr.AddReference(dll_path)
+                                from LibreHardwareMonitor import Hardware
+                                self._lhm_computer = Hardware.Computer()
+                                self._lhm_computer.IsCpuEnabled = True
+                                self._lhm_computer.Open()
+                                self._lhm_initialized = True
+                                self._Hardware = Hardware
+                        if self._lhm_computer:
+                            for hw in self._lhm_computer.Hardware:
+                                if hw.HardwareType == self._Hardware.HardwareType.Cpu:
+                                    hw.Update()
+                                    for sensor in hw.Sensors:
+                                        if sensor.SensorType == self._Hardware.SensorType.Temperature:
+                                            if sensor.Value is not None:
+                                                temp = float(sensor.Value)
+                                                if temp > 0:
+                                                    self._cpu_temp_available = True
+                                                    self._cpu_temp_method = "lhm"
+                                                    return temp
+                    except Exception as e:
+                        self._lhm_initialized = False
+                        self._lhm_computer = None
+                        if self._cpu_temp_method == "lhm":
+                            self._cpu_temp_method = None
         except:
             pass
         return None
@@ -186,12 +222,12 @@ class SystemMonitor:
 
         if not gpus and platform.system() == "Windows":
             try:
-                command = "wmic path win32_VideoController get name"
+                command = ["powershell", "-Command", "Get-CimInstance -ClassName Win32_VideoController | Select-Object -ExpandProperty Name"]
                 output = subprocess.check_output(
-                    command, shell=True,
+                    command,
                     creationflags=subprocess.CREATE_NO_WINDOW
                 ).decode().strip()
-                lines = output.split("\n")[1:]
+                lines = output.split("\n")
                 for line in lines:
                     if line.strip():
                         name = line.strip()

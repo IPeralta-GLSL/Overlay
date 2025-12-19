@@ -202,9 +202,10 @@ class OverlayWindow(QWidget):
                 temp_color = self._get_color_for_temp(cpu_temp)
                 text, color = self._format_with_color(self.trans.get('cpu_temp', 'CPU Temp'), f"{cpu_temp:.1f}°C", temp_color)
                 self._apply_label_style(self.cpu_temp_label, text, color)
-                self.cpu_temp_label.setVisible(True)
             else:
-                self.cpu_temp_label.setVisible(False)
+                self.cpu_temp_label.setText(f"{self.trans.get('cpu_temp', 'CPU Temp')}: N/A")
+                self.cpu_temp_label.setStyleSheet(f"color: {self.base_color};")
+            self.cpu_temp_label.setVisible(True)
         else:
             self.cpu_temp_label.setVisible(False)
 

@@ -4,6 +4,29 @@ import types
 import setuptools
 import json
 import os
+import ctypes
+
+def is_admin():
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin()
+    except:
+        return False
+
+def run_as_admin():
+    if sys.platform == 'win32' and not is_admin():
+        script = os.path.abspath(sys.argv[0])
+        python_exe = sys.executable
+        pythonw_exe = python_exe.replace('python.exe', 'pythonw.exe')
+        if os.path.exists(pythonw_exe):
+            python_exe = pythonw_exe
+        working_dir = os.path.dirname(script)
+        args = f'"{script}"'
+        ret = ctypes.windll.shell32.ShellExecuteW(
+            None, "runas", python_exe, args, working_dir, 1
+        )
+        sys.exit(0)
+
+run_as_admin()
 
 try:
     from distutils import spawn
